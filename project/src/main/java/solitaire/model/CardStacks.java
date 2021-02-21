@@ -35,19 +35,52 @@ class CardStacks {
 		for (; pos < deckLength; pos++) {
 			drawingStack.add(deck.getCard(pos));
 		}
-		
-//		Remove
-//		finalStacks[0][0] = new Card('D',1);
-//		finalStacks[0][1] = new Card('D',2);
-//		this.drawingStack.set(23, new Card('S',1));
+	}
+	//TODO: REMOVE
+	/**
+	 * NOT FOR PRODUCTION; TESTING ONLY
+	 * @param deck
+	 * @param cheat
+	 */
+	public CardStacks(CardDeck deck, String cheat) {
+		if (cheat == "CHEATER") {
+			for (int i = 0; i < SUITS; i++) {
+				char suit;
+				switch (i) {
+				case 0: {
+					suit = 'S';
+					break;
+				}case 1: {
+					suit = 'D';
+					break;
+				}case 2: {
+					suit = 'H';
+					break;
+				}case 3: {
+					suit = 'C';
+					break;
+				}
+				default:
+					throw new IllegalArgumentException("Unexpected value: " + i);
+				}
+				for (int j = 0; j < CARDSINSUITE; j++) {
+					this.finalStacks[i][j] = new Card(suit, j + 1);
+				}
+				//this.finalStacks[0][0] = new Card('H', 7);
+			}
+		} else {
+			throw new IllegalArgumentException("CardStacks was called with too many arguments.");
+		}
 	}
 	
 	/**
-	 * 
+	 * isCardFree is used by legalMove to determine if a card is on top of a stack (except drawingStack)
+	 * and therefore free to be moved
 	 */
 	private boolean isCardFree(Card Card, List<Card> fromStack) {
-		//TODO: check if card is in the drawstack, and return false ?
-		if (fromStack.get(fromStack.size() - 1) == Card) {
+		if (this.drawingStack.contains(Card))
+			return false;
+		else if (fromStack.get(fromStack.size() - 1) == Card) {
 			return true;
 		}
 		return false;
@@ -55,7 +88,7 @@ class CardStacks {
 	
 	/**
 	 * Legalmove(Card, List) takes in a card and a list argument.
-	 * It checks if the Card can be moved on top of the list, which should be a in the playStacks array.
+	 * It checks if the Card is free and if it can be moved on top of the list, which should be a in the playStacks array.
 	 * @return
 	 */
 	private boolean legalMove(Card topCard, List<Card> fromStack, List<Card> toStack) {
@@ -88,7 +121,7 @@ class CardStacks {
 	
 	/**
 	 * Legalmove(Card, Array) takes in a card and an array argument.
-	 * It checks if the Card can be moved on top of the list, which should be a in the finalStacks array.
+	 * It checks if the Card is free and if it can be moved on top of the list, which should be a in the finalStacks array.
 	 * @return
 	 */
 	private boolean legalMove(Card topCard, List<Card> fromStack, Card[] toStack) {
@@ -117,17 +150,7 @@ class CardStacks {
 		}
 		return false;
 	}		
-		/*if (this.drawingStack.contains(bottomCard))
-			return false;
-		else if (Arrays.asList(finalStacks).contains(bottomCard)) {
-			return true;
-		}
-		Arrays.stream(finalStacks)
-			.flatMap(Arrays::stream)
-			.anyMatch(card -> card == bottomCard);
-		
-		System.out.println("" + topCard + bottomCard.getClass());
-		return false;*/
+	
 	
 	/**moveCard(Card, fromStack, List toStack) moves a card to a playstack after checking with legalMove.
 	 * 
@@ -138,8 +161,8 @@ class CardStacks {
 			return;
 		else {
 			toStack.add(topCard);
-			if (this.drawingStack.get(this.drawingStack.size() - 1) == topCard) {
-				this.drawingStack.remove(this.drawingStack.size() - 1);
+			if (this.throwStack.get(this.throwStack.size() - 1) == topCard) {
+				this.throwStack.remove(this.throwStack.size() - 1);
 				return;
 			}
 			for (int i = 0; i < PLAYSTACKSNUM; i++) {
@@ -170,8 +193,8 @@ class CardStacks {
 			} else {
 				throw new IllegalArgumentException("The finalStack attempted to add a card to is full");
 			}
-			if (this.drawingStack.get(this.drawingStack.size() - 1) == topCard) {
-				this.drawingStack.remove(this.drawingStack.size() - 1);
+			if (this.throwStack.get(this.throwStack.size() - 1) == topCard) {
+				this.throwStack.remove(this.throwStack.size() - 1);
 				return;
 			}
 			for (int i = 0; i < PLAYSTACKSNUM; i++) {
@@ -188,7 +211,7 @@ class CardStacks {
 	 * throwStack 
 	 */
 	public void dealThree() {
-		if (drawingStack.size() <= 0) {
+		if (drawingStack.size() == 0) {
 			throw new IllegalStateException("The drawingStack is empty, put the throwStack back onto it first"); //TODO: catch this when called
 		}
 		for (int i = 1; i <= 3 && drawingStack.size() > 0; i++ ) {
@@ -213,34 +236,50 @@ class CardStacks {
 		}
 	}
 	
-	public static void main(String[] args) {
-		CardDeck deck = new CardDeck(13);
-		deck.shufflePerfectly();
-		deck.shufflePerfectly();
-		CardStacks stacks = new CardStacks(deck);
-		//Collections.rotate(stacks.drawingStack, 3);
-		for (int i = 0; i < 8; i++)
-			stacks.dealThree();
-		stacks.resetDrawStack();
-		//Card testCard = new Card('S',5);
+	/**
+	 * The isSolved method returns true if the four final stacks are in a solved position (ace-king for all suits),
+	 * and no other stacks contains a card. 
+	 * @return
+	 */
+	public boolean isSolved() {
+		if (this.drawingStack.size() > 0 || this.throwStack.size() > 0)
+			return false;
+		for (int i = 0; i < PLAYSTACKSNUM; i++)
+			if (this.playStacks[i] != null) 
+				if (this.playStacks[i].size() > 0)
+					return false;
 		
-//		boolean jack = stacks.legalMove(stacks.drawingStack.get(stacks.drawingStack.size() - 1), stacks.drawingStack , stacks.finalStacks[0]);
-//		boolean jack = stacks.legalMove(stacks.drawingStack.get(23), stacks.drawingStack , stacks.playStacks[3]);
-//		stacks.moveCard(stacks.drawingStack.get(23), stacks.drawingStack, stacks.finalStacks[1]);
-//		stacks.moveCard(stacks.playStacks[0].get(0), stacks.playStacks[0], stacks.finalStacks[0]);
-//		
-//		System.out.println(" " + stacks.playStacks[3].get(stacks.playStacks[3].size() - 1) + " " + stacks.finalStacks[0][0]);
-//		
-		/*int k = 0;
-		for (int i = 0; i < 7; i++) {
-			for (int j = i; j < 7; j++) {
-				k++;
-				System.out.println(i + " " +  j + " " + stacks.playStacks[j].get(i) + " " + k);
+		String suits = "" ;
+		for (int i = 0; i < SUITS; i++) {
+			char currentSuit = this.finalStacks[i][0].getSuit();
+			if (suits.indexOf(currentSuit) == - 1)
+				suits += this.finalStacks[i][0].getSuit();
+			else 
+				return false;
+			
+			for (int j = 0; j < CARDSINSUITE; j++) {
+				if ( ! (this.finalStacks[i][j].getFace() == j + 1 && this.finalStacks[i][j].getSuit() == currentSuit)) {
+					return false;
+				}
 			}
 		}
-		for (int i = 0; i < 24; i++) {
-			System.out.println(i + " " + stacks.drawingStack.get(i));
-		}*/
+		return true;
+	}
+	
+	public static void main(String[] args) {
+		CardDeck deck = new CardDeck(13);
+		for (int i = 0; i < 0; i++) {
+			deck.shufflePerfectly();
+		}
+		CardStacks stacks = new CardStacks(deck, "CHEATER");
+		//Collections.rotate(stacks.drawingStack, 3);
+		for (int i = 0; i < 4; i++)
+			;
+			//stacks.dealThree();
+		//stacks.resetDrawStack();
+		
+		System.out.println(stacks.isSolved());
+		
 	}
 }
 
