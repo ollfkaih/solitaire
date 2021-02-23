@@ -186,19 +186,17 @@ public class CardStacks {
 					this.hiddenPlayCards[i]--;
 				}
 			}
-			toStack.add(topCard);
 			if (this.throwStack.size() > 0) {
 				if (this.throwStack.get(this.throwStack.size() - 1) == topCard) {
 					this.throwStack.remove(this.throwStack.size() - 1);
-					return;
 				}
 			}
 			for (int i = 0; i < PLAYSTACKSNUM; i++) {
 				if (this.playStacks[i].get(this.playStacks[i].size() - 1) == topCard) {
 					this.playStacks[i].remove(this.playStacks[i].size() - 1);
-					return;
 				}
 			}
+			toStack.add(topCard);
 		}
 	}
 	
@@ -216,7 +214,7 @@ public class CardStacks {
 					this.hiddenPlayCards[i]--;
 				}
 			}
-			int j = -1;
+			int j = - 1;
 			for (int i = toStack.length - 1; i >= 0; i--) {
 				if (toStack[i] == null) {
 					j = i;
@@ -230,14 +228,12 @@ public class CardStacks {
 			if (this.throwStack.size() > 0) {
 				if (this.throwStack.get(this.throwStack.size() - 1) == topCard) {
 					this.throwStack.remove(this.throwStack.size() - 1);
-					return;
 				}
 			}
 			for (int i = 0; i < PLAYSTACKSNUM; i++) {
 				if (this.playStacks[i].size() > 0) {
 					if (this.playStacks[i].get(this.playStacks[i].size() - 1) == topCard) {
 						this.playStacks[i].remove(this.playStacks[i].size() - 1);
-						return;
 					}
 				}
 			}
