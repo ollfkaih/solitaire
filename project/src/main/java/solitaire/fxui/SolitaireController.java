@@ -6,8 +6,6 @@ import solitaire.model.CardDeck;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 
 
 public class SolitaireController {
@@ -17,8 +15,9 @@ public class SolitaireController {
 	@FXML private AnchorPane Root;
 	@FXML private AnchorPane PlayStacks;
 	@FXML private AnchorPane FinalStacks;
-	@FXML private AnchorPane DrawStacks;
-		
+	@FXML private Label DrawStack;
+	@FXML private Label ThrowStack;
+
 	@FXML
 	private void initialize() {
 			
@@ -39,23 +38,28 @@ public class SolitaireController {
 			p[i] = new Label(stacks.getPlayStacks()[i].get(stacks.getPlayStacks()[i].size() - 1).toString());
 			p[i].setTranslateX(100 + 60*i);
 			p[i].setTranslateY(50);
+			p[i].setOnMouseClicked(handleClickDrawStack());
 			PlayStacks.getChildren().add(p[i]);
 		}
 		
 		for (int i = 0; i < CardStacks.SUITS; i++) {
-			f[i] = new Label(stacks.getPlayStacks()[i].get(stacks.getPlayStacks()[i].size() - 1).toString());
+			f[i] = new Label(stacks.getFinalStacks()[i].toString());
 			f[i].setTranslateX(100 + 60*i);
 			f[i].setTranslateY(50);
 			FinalStacks.getChildren().add(f[i]);
 		}
 		
-		d = new Label("Backside of cards");
-		d.getOnMouseClicked();
-		DrawStacks.getChildren().add(d);
+		DrawStack.setText("Backside of cards");
 		
 		//t skal være tom fra start
 		//t = new Label(stacks.getThrowStack().get(stacks.getThrowStack().size() - 1).toString());
 		
 		//PlayStack0.setText(stacks.getPlayStacks()[0].get(0).toString());;
+	}
+	
+	@FXML
+	void handleClickDrawStack() {
+		stacks.deal(3);
+		ThrowStack.setText(stacks.getThrowStack().get(stacks.getThrowStack().size() - 1).toString());
 	}
 }
