@@ -1,6 +1,6 @@
 package solitaire.model;
 
-class CardDeck {
+public class CardDeck {
 	private Card[] deck;
 	
 	/**

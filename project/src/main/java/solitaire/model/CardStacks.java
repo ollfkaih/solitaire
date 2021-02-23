@@ -1,17 +1,33 @@
 package solitaire.model;
 
+import java.io.Console;
 import java.util.*;
 
-class CardStacks {
-	private final static int PLAYSTACKSNUM = 7; // Seven play stacks
-	private final static int SUITS = 4;
-	private final static int CARDSINSUITE = 13;
+public class CardStacks {
+	public final static int PLAYSTACKSNUM = 7; // Seven play stacks
+	public final static int SUITS = 4;
+	public final static int CARDSINSUITE = 13;
 //	private final static int PLAYSTACKSSUM = 28; // Seven cards in the seventh position, six ... gives  7+6+5+4+3+2+1=28
 	
 	private Card[][] finalStacks = new Card[SUITS][CARDSINSUITE]; //four final stacks 
 	private List<Card>[] playStacks = (List<Card>[]) new ArrayList[PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
 	private List<Card> drawingStack = new ArrayList<Card>(); //the stack cards are drawn from, three by three
 	private List<Card> throwStack = new ArrayList<Card>(); //The stack of drawn cards next to the drawingStack
+	private int[] hiddenPlayCards = new int[PLAYSTACKSNUM]; //Number of hidden cards in the nth playStack //TODO: make use of
+			
+	public Card[][] getFinalStacks() {
+		return finalStacks;
+	}
+	public List<Card>[] getPlayStacks() {
+		return playStacks;
+	}
+	public List<Card> getThrowStack() {
+		return throwStack;
+	}
+	//The drawingStack should be secret 
+	/*public List<Card> getDrawingStack() {
+	return drawingStack;
+	}*/
 	
 	/**
 	 * This constructor places a CardDeck into a legal starting position by putting one card on every playStacks[],
@@ -26,15 +42,17 @@ class CardStacks {
 			playStacks[i] = new ArrayList<>();
 		}
 		int pos = 0; //Position of the deck to draw from
-		for (int i = 0; i < PLAYSTACKSNUM; i++) {
-			for (int j = i; j < PLAYSTACKSNUM; j++) {
-				playStacks[j].add(deck.getCard(pos));
+		for (int i = PLAYSTACKSNUM - 1; i >= 0; i--) {
+			for (int j = PLAYSTACKSNUM; j >= PLAYSTACKSNUM - i; j--) {
+				playStacks[i].add(deck.getCard(pos));
+				hiddenPlayCards[i] = i;
 				pos++;
 			}
 		}
 		for (; pos < deckLength; pos++) {
 			drawingStack.add(deck.getCard(pos));
 		}
+		
 	}
 	//TODO: REMOVE
 	/**
@@ -155,15 +173,25 @@ class CardStacks {
 	/**moveCard(Card, fromStack, List toStack) moves a card to a playstack after checking with legalMove.
 	 * 
 	 */
-	public void moveCard(Card topCard, List<Card> fromStack, List<Card> toStack) {
+	private void moveCard(Card topCard, List<Card> fromStack, List<Card> toStack) {
 		//System.out.println(topCard + " " + toStack);
-		if (!legalMove(topCard, fromStack, toStack))
-			return;
+		if (!legalMove(topCard, fromStack, toStack)) {
+			System.out.println(topCard + " " + fromStack + " " + toStack);
+			throw new IllegalArgumentException("The card " + topCard + " cannot be moved on top of " + toStack.get(toStack.size() - 1));
+		}
 		else {
+			//Reveals a playCard when a card is moved from that stack.
+			for (int i = 0; i < PLAYSTACKSNUM; i++) {
+				if (this.playStacks[i].contains(topCard) && this.hiddenPlayCards[i] > 0) {
+					this.hiddenPlayCards[i]--;
+				}
+			}
 			toStack.add(topCard);
-			if (this.throwStack.get(this.throwStack.size() - 1) == topCard) {
-				this.throwStack.remove(this.throwStack.size() - 1);
-				return;
+			if (this.throwStack.size() > 0) {
+				if (this.throwStack.get(this.throwStack.size() - 1) == topCard) {
+					this.throwStack.remove(this.throwStack.size() - 1);
+					return;
+				}
 			}
 			for (int i = 0; i < PLAYSTACKSNUM; i++) {
 				if (this.playStacks[i].get(this.playStacks[i].size() - 1) == topCard) {
@@ -177,11 +205,17 @@ class CardStacks {
 	/**moveCard(Card, fromStack, array toStack) moves a card to a finalStack after checking with legalMove.
 	 * 
 	 */
-	public void moveCard(Card topCard, List<Card> fromStack, Card[] toStack) {
+	private void moveCard(Card topCard, List<Card> fromStack, Card[] toStack) {
 		//System.out.println(topCard + " " + toStack);
 		if (!legalMove(topCard, fromStack, toStack))
 			return;
 		else {
+			//Reveals a playCard when a card is moved from that stack.
+			for (int i = 0; i < PLAYSTACKSNUM; i++) {
+				if (this.playStacks[i].contains(topCard) && this.hiddenPlayCards[i] > 0) {
+					this.hiddenPlayCards[i]--;
+				}
+			}
 			int j = -1;
 			for (int i = toStack.length - 1; i >= 0; i--) {
 				if (toStack[i] == null) {
@@ -193,28 +227,81 @@ class CardStacks {
 			} else {
 				throw new IllegalArgumentException("The finalStack attempted to add a card to is full");
 			}
-			if (this.throwStack.get(this.throwStack.size() - 1) == topCard) {
-				this.throwStack.remove(this.throwStack.size() - 1);
-				return;
+			if (this.throwStack.size() > 0) {
+				if (this.throwStack.get(this.throwStack.size() - 1) == topCard) {
+					this.throwStack.remove(this.throwStack.size() - 1);
+					return;
+				}
 			}
 			for (int i = 0; i < PLAYSTACKSNUM; i++) {
-				if (this.playStacks[i].get(this.playStacks[i].size() - 1) == topCard) {
-					this.playStacks[i].remove(this.playStacks[i].size() - 1);
-					return;
+				if (this.playStacks[i].size() > 0) {
+					if (this.playStacks[i].get(this.playStacks[i].size() - 1) == topCard) {
+						this.playStacks[i].remove(this.playStacks[i].size() - 1);
+						return;
+					}
 				}
 			}
 		}
 	}
 	
 	/**
-	 * dealThree takes the top three (or the remaining cards if less than three) cards from the drawingStack and puts them on the
+	 * moveCard(Card,from stackshortname, to stackshortname) calls the appropriate moveCard depending on the thrird argument: the stack to move to
+	 * The stackshortname is either t for throwstack, f[0-3] (e.g. f2) for the final stacks or p[0-6] for the playStacks.
+	 */
+	public void moveCard(Card card, String from, String to) {
+		List<Card> fromStack;
+		switch (from.charAt(0)) {
+		case 't' -> {
+			fromStack = this.throwStack; 
+			break;
+		}
+		case 'p' -> {
+			if ("0123456".indexOf(from.charAt(1)) == -1) {
+				throw new IllegalArgumentException("Bad stack number given, playStack only has 7 stacks.");
+			} else {
+				fromStack = this.playStacks[Character.getNumericValue(from.charAt(1))];
+			}
+		}
+		default ->
+		throw new IllegalArgumentException("Unexpected value: " + from.charAt(0));
+		}
+		
+		switch (to.charAt(0)) {
+		case 'p' -> {
+			if ("0123456".indexOf(from.charAt(1)) == -1) {
+				throw new IllegalArgumentException("Bad stack number given, playStack only has 7 stacks.");
+			} else {
+				List<Card> toStack = this.playStacks[Character.getNumericValue(to.charAt(1))];
+				moveCard(card, fromStack, toStack);
+				break;
+			}
+		}
+		case 'f' -> {
+			if ("0123".indexOf(from.charAt(1)) == -1) {
+				throw new IllegalArgumentException("Bad stack number given, finalStacks only has 4 stacks.");
+			} else {
+				Card[] toStack = this.finalStacks[Character.getNumericValue(to.charAt(1))];
+				moveCard(card, fromStack, toStack);
+				break;
+			}
+		}
+		default ->
+		throw new IllegalArgumentException("Unexpected value: " + to);
+		}
+				
+	}
+	
+	/**
+	 * deal takes the top n (or the remaining cards if less than n) cards from the drawingStack and puts them on the
 	 * throwStack 
 	 */
-	public void dealThree() {
+	public void deal(int n) {
+		if (n <= 0)
+			throw new IllegalArgumentException("You must deal a positive number of cards");
 		if (drawingStack.size() == 0) {
 			throw new IllegalStateException("The drawingStack is empty, put the throwStack back onto it first"); //TODO: catch this when called
 		}
-		for (int i = 1; i <= 3 && drawingStack.size() > 0; i++ ) {
+		for (int i = 1; i <= n && drawingStack.size() > 0; i++ ) {
 			throwStack.add(drawingStack.get(drawingStack.size() - 1));
 			drawingStack.remove(drawingStack.size() - 1);
 		}
@@ -268,16 +355,17 @@ class CardStacks {
 	
 	public static void main(String[] args) {
 		CardDeck deck = new CardDeck(13);
-		for (int i = 0; i < 0; i++) {
+		for (int i = 0; i < 1; i++) {
 			deck.shufflePerfectly();
 		}
-		CardStacks stacks = new CardStacks(deck, "CHEATER");
-		//Collections.rotate(stacks.drawingStack, 3);
+		CardStacks stacks = new CardStacks(deck);
 		for (int i = 0; i < 4; i++)
 			;
 			//stacks.dealThree();
 		//stacks.resetDrawStack();
+		//System.out.println(stacks.playStacks[1].get(1) + " " + stacks.playStacks[1] + " " + stacks.finalStacks[0][0]);
 		
+		stacks.moveCard(stacks.playStacks[1].get(1), stacks.playStacks[1], stacks.finalStacks[0]);
 		System.out.println(stacks.isSolved());
 		
 	}

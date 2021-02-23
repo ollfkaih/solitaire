@@ -1,6 +1,6 @@
 package solitaire.model;
 
-class Card {
+public class Card {
 	private char suit;
 	private int value;
 	
