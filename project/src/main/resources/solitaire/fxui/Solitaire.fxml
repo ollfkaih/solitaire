@@ -37,8 +37,8 @@
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <Label fx:id="DrawStack" alignment="CENTER" contentDisplay="CENTER" onMouseClicked="#handleClickDrawStack" text="Label" wrapText="true" />
-                              <Label fx:id="ThrowStack" alignment="CENTER" contentDisplay="CENTER" text="Label" GridPane.columnIndex="1" />
+                              <Label fx:id="DrawStack" translateX="20" translateY="-30" alignment="CENTER" contentDisplay="CENTER" onMouseClicked="#handleClickDrawStack" text="Label" wrapText="true" />
+                              <Label fx:id="ThrowStack" translateX="40" translateY="-30" alignment="CENTER" contentDisplay="CENTER" text="Label" GridPane.columnIndex="1" />
                            </children>
                         </GridPane>
                      </children></AnchorPane>

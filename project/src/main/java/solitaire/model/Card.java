@@ -36,9 +36,48 @@ public class Card {
 		return this.value;
 	}
 	
-	@Override
-	public String toString() {
-		return String.format("%c%d",this.suit,this.value);
+	/**
+	 * legalCard checks that the suit and face value of a given card is legal 
+	 * @return
+	 */
+	/*public boolean legalCard(Card c) {
+		if (legalSuit(c.getSuit()) && legalValue(c.getFace());;)
+		return false;
+		
+	}*/
+	
+	public static Card stringToCard(String cardString) {
+		Card c;		
+		if (cardString.length() != 2 && cardString.length() != 3) {
+			throw new IllegalArgumentException("The card should be two or three characters.");
+		}
+		char suit = cardString.charAt(0);
+		int value;
+		try {
+			value = Integer.parseInt(cardString.substring(1));
+		} catch (Exception e) {
+			throw new IllegalArgumentException("The card should end with a number from 1-13.");
+		}
+		try {
+			c = new Card(suit, value);
+		} catch (Exception IllegalArgumentExecption) {
+			throw new IllegalArgumentException("Card could not be created with given string");
+		}
+		return c;
 	}
 	
+	public boolean equals(Card c2) {
+		if (this.suit == c2.suit && this.value == c2.value)
+			return true;
+		return false;
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("%c%d", this.suit, this.value);
+	}
+	
+	/*public static void main(String[] args) {
+		System.out.println(stringToCard("C10").getSuit());
+	}*/
 }

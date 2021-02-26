@@ -1,11 +1,29 @@
 package solitaire.fxui;
 
 import solitaire.model.CardStacks;
+import solitaire.model.Card;
 import solitaire.model.CardDeck;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
+import javax.imageio.stream.FileImageInputStream;
+
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Paint;
 
 
 public class SolitaireController {
@@ -18,6 +36,10 @@ public class SolitaireController {
 	@FXML private Label DrawStack;
 	@FXML private Label ThrowStack;
 
+	Label[] p = new Label[CardStacks.PLAYSTACKSNUM];
+	Label[] f = new Label[CardStacks.SUITS];
+	//Label d, t;
+	
 	@FXML
 	private void initialize() {
 			
@@ -25,41 +47,289 @@ public class SolitaireController {
 		for (int i = 0; i < 3; i++)
 			deck.shufflePerfectly();
 		stacks = new CardStacks(deck);
-		//System.out.println(stacks.getPlayStacks()[6]);
-//		System.out.println(stacks.getPlayStacks()[6].get(6) + " " +  stacks.getPlayStacks()[6] + " " + stacks.getPlayStacks()[5]);
-//		stacks.moveCard(stacks.getPlayStacks()[6].get(6), "p6", "p5");
-//		System.out.println(stacks.getPlayStacks()[6] + " " + stacks.getPlayStacks()[5]);
 
-		Label[] p = new Label[CardStacks.PLAYSTACKSNUM];
-		Label[] f = new Label[CardStacks.SUITS];
-		Label d, t;
-		
 		for (int i = 0; i < CardStacks.PLAYSTACKSNUM; i++) {
 			p[i] = new Label(stacks.getPlayStacks()[i].get(stacks.getPlayStacks()[i].size() - 1).toString());
-			p[i].setTranslateX(100 + 60*i);
+			p[i].setTranslateX(40 + 80*i);
 			p[i].setTranslateY(50);
-			p[i].setOnMouseClicked(handleClickDrawStack());
+			
+		    //Events need to know what stack this card is in 
+		    int[] stackShortArr = new int[2]; 
+		    stackShortArr[0] = 'p';
+		    stackShortArr[1] = i;
+		    p[i].setUserData(stackShortArr);
+			
+			p[i].setOnDragDetected(dragDetectedEvent);
+			p[i].setOnDragOver(dragOverEvent);	
+			p[i].setOnDragDropped(cardDroppedEvent);
+			p[i].setOnMouseClicked(doubleClickCard);
+			
 			PlayStacks.getChildren().add(p[i]);
 		}
-		
+				
 		for (int i = 0; i < CardStacks.SUITS; i++) {
-			f[i] = new Label(stacks.getFinalStacks()[i].toString());
-			f[i].setTranslateX(100 + 60*i);
+			try {
+				f[i] = new Label(stacks.getTopFinalStack(i).toString());
+			} catch (Exception NullPointerException) {
+				f[i] = new Label("Empty\nplaceholder");
+			}
+			
+			Image img = new Image("http://goo.gl/kYEQl", true);
+			//ImageView view  = new ImageView(img);
+		    f[i].setGraphic(new ImageView(img));
+			
+		    //Events need to know what stack this card is in 
+			int[] stackShortArr = new int[2];
+		    stackShortArr[0] = 'f';
+		    stackShortArr[1] = i;
+		    f[i].setUserData(stackShortArr);
+			
+		    f[i].setOnDragDetected(dragDetectedEvent);
+			f[i].setTranslateX(70 + 90*i);
 			f[i].setTranslateY(50);
+			
+			f[i].setOnDragOver(dragOverEvent);	
+			f[i].setOnDragDropped(cardDroppedEvent);
+			
 			FinalStacks.getChildren().add(f[i]);
 		}
 		
 		DrawStack.setText("Backside of cards");
+		//DrawStack.setVisible(false);
 		
-		//t skal være tom fra start
-		//t = new Label(stacks.getThrowStack().get(stacks.getThrowStack().size() - 1).toString());
+		int[] stackShortArr = new int[2]; 
+		stackShortArr[0] = 't';
 		
-		//PlayStack0.setText(stacks.getPlayStacks()[0].get(0).toString());;
+		ThrowStack.setText("Empty\nthrowstack");
+		ThrowStack.setUserData(stackShortArr);
+		ThrowStack.setOnDragDetected(dragDetectedEvent);
+		ThrowStack.setOnMouseClicked(doubleClickCard);
+		
+		updateStack();
 	}
 	
 	@FXML
 	void handleClickDrawStack() {
-		stacks.deal(3);
-		ThrowStack.setText(stacks.getThrowStack().get(stacks.getThrowStack().size() - 1).toString());
+		stacks.deal(1);
+		if (!stacks.getThrowStack().isEmpty()) {
+			Card topCard = stacks.getThrowStack().get(stacks.getThrowStack().size() - 1);
+			ThrowStack.setText(topCard.toString());
+			setImage(ThrowStack, topCard);
+		} else {
+			ThrowStack.setText("Empty\nthrowstack");
+		}
 	}
+	
+	/** 
+	 * setImageBack(Label) sets the top card image to the backside of a card deck
+	 * @param stack
+	 */
+	private static void setImageBack(Label stack) {
+		//TODO: Implement somehow
+	}
+	private static void setImage(Label stack, Card card) {
+		Image img;
+		ImageView view;
+		try {
+			img = cardToImg(card);
+			view = new ImageView(img);
+			view.setFitHeight(img.getHeight()/3);
+			view.setFitWidth(img.getWidth()/3);
+			stack.setGraphic(view);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+	private static Image cardToImg(Card card) {
+		String imgDir = "C:\\Users\\Olav\\Downloads\\kort\\png\\";
+		String ext = ".png";
+		Image img;
+		
+		boolean useInt = false;
+		char faceVal = 0;
+		switch (card.getFace()) {
+		case 2,3,4,5,6,7,8,9 -> {
+				useInt = true;
+			}
+		case 1  -> faceVal = 'A';
+		case 10 -> faceVal = 'T';
+		case 11 -> faceVal = 'J';
+		case 12 -> faceVal = 'Q';
+		case 13 -> faceVal = 'K';
+		default -> throw new IllegalArgumentException("Illegal card");
+		}
+		
+		try {
+			if (useInt) {
+				img = new Image(new FileInputStream(imgDir + card.getFace() + card.getSuit() + ext));
+			} else {
+				img = new Image(new FileInputStream(imgDir + faceVal + card.getSuit() + ext));
+			}
+			return img;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			System.out.println("Could not find file");
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+			System.out.println("Could not get card face");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("HUH?");
+		}
+		return null;
+	}
+	
+	void updateStack() {
+		//TODO: REMOVE console printout
+		for (int i = 0; i < 7; i++)
+			System.out.println(stacks.getPlayStacks()[i]);
+		for (int i = 0; i < CardStacks.PLAYSTACKSNUM; i++) {
+			try {
+				Card topCard = stacks.getPlayStacks()[i].get(stacks.getPlayStacks()[i].size() - 1);
+				p[i].setText(topCard.toString());
+				p[i].setTextFill(Paint.valueOf("white"));
+				setImage(p[i],topCard);
+			} catch (Exception IllegalArgumentException) {
+				p[i].setText("Empty\nstack");
+				//TODO: Set empty image
+			}
+		}
+		for (int i = 0; i < CardStacks.SUITS; i++) {
+			try {
+				Card topCard = stacks.getTopFinalStack(i);
+				f[i].setText(topCard.toString());
+				f[i].setTextFill(Paint.valueOf("white"));
+				setImage(f[i], topCard);
+			} catch (Exception IllegalArgumentException) {
+				f[i].setText("Empty\nstack");
+				//TODO: Set empty image
+			}
+			finally {
+				; //If getTopFinalStack throws, the stack is empty, so f[i] should be a blank stack.
+			}
+		}
+		try {
+			Card topCard = stacks.getThrowStack().get(stacks.getThrowStack().size() - 1);
+			ThrowStack.setText(topCard.toString());
+			setImage(ThrowStack, topCard);
+		} catch (Exception NullPointerException) {
+			ThrowStack.setText("Empty\nthrowstack");
+			//TODO: Set empty image
+		}
+	}
+	EventHandler <MouseEvent> dragDetectedEvent = new EventHandler <MouseEvent>() {
+		@Override
+		public void handle(MouseEvent event) {
+			
+			int[] stackShortArr = (int[]) ((Label) event.getSource()).getUserData();
+			
+			switch ((char) stackShortArr[0]) {
+			case 'p': {
+				try {
+					Dragboard db = p[stackShortArr[1]].startDragAndDrop(TransferMode.MOVE);
+					
+			        ClipboardContent content = new ClipboardContent();
+			        content.putString("p" + stackShortArr[1] + "\t" + p[stackShortArr[1]].getText());
+			        db.setContent(content);
+			        System.out.println(db.getContent(DataFormat.PLAIN_TEXT));
+				} catch (Exception e) {
+					throw new IllegalArgumentException("Card cannot be moved here.");
+				}
+				break;
+			} case 'f': {
+				try {
+					Dragboard db = f[stackShortArr[1]].startDragAndDrop(TransferMode.MOVE);
+					
+			        ClipboardContent content = new ClipboardContent();
+			        content.putString("f" + stackShortArr[1] + "\t" + f[stackShortArr[1]].getText());
+			        db.setContent(content);
+				} catch (Exception e) {
+					throw new IllegalArgumentException("Card cannot be moved here.");
+				}
+				break;
+			} case 't': {
+				try {
+					Dragboard db = ThrowStack.startDragAndDrop(TransferMode.MOVE);
+					
+			        ClipboardContent content = new ClipboardContent();
+			        content.putString("t" + "\t\t" + ((Label) event.getSource()).getText());
+			        db.setContent(content);
+			        //System.out.println(content);
+				} catch (Exception e) {
+					throw new IllegalArgumentException("Card cannot be moved here.");
+				}
+				break;
+			} default: {
+				event.consume();
+			}
+			event.consume();
+		}}
+	};
+	
+	EventHandler <DragEvent> dragOverEvent = new EventHandler <DragEvent>() {
+        public void handle(DragEvent event) {
+            event.acceptTransferModes(TransferMode.MOVE);
+            
+            event.consume();
+        }
+	};
+	
+	EventHandler <MouseEvent> doubleClickCard = new EventHandler <MouseEvent>() {
+		@Override
+		public void handle(MouseEvent event) {
+	        if(event.getButton().equals(MouseButton.PRIMARY)){
+	            if(event.getClickCount() == 2) {
+	            	try {
+	            		System.out.println("Double-clicked:" + ((Label) event.getSource()).getText());
+	            		stacks.moveToFinalStacks(((Label) event.getSource()).getText());
+	            	} catch (Exception e) {
+	            		e.printStackTrace();
+		            	System.out.println("Could not move to a final stack: " + ((Label) event.getSource()).getText());
+	            	} finally {
+	            		updateStack();
+	            	}
+	            }
+	        }
+		}
+	};
+	EventHandler <DragEvent> cardDroppedEvent = new EventHandler <DragEvent>() {
+		@Override
+		public void handle(DragEvent event) {
+			event.acceptTransferModes(TransferMode.MOVE);
+			
+			System.out.println(event.getDragboard().getString());
+			String cardString = event.getDragboard().getString().substring(3);
+			char suit = cardString.charAt(0);
+			int value = Integer.parseInt(cardString.substring(1));
+			Card card = new Card(suit, value);
+			
+			String fromStack = event.getDragboard().getString().substring(0, 2);
+			
+			int[] stackShortArr = (int[]) ((Label) event.getSource()).getUserData();
+
+			switch ((char) stackShortArr[0]) {
+			case 'p': {
+				try {
+					stacks.moveCard(card, fromStack, "p" + stackShortArr[1]);
+					updateStack();
+				} catch (Exception e) {
+					throw new IllegalArgumentException("Card cannot be moved to this playStack. Exception:" + e);
+				}
+				break;
+			} case 'f': {
+				try {
+					stacks.moveCard(card, fromStack, "f" + stackShortArr[1]);
+					updateStack();
+				} catch (Exception e) {
+					throw new IllegalArgumentException("Card cannot be moved to this finalStack. Exception:" + e);
+				}
+				break;
+			}
+			default:
+				throw new IllegalArgumentException("Unexpected value: " + (char) stackShortArr[0]);
+			}
+			event.consume();
+		}
+	};
 }
