@@ -117,15 +117,41 @@ public class SolitaireController {
 			setImage(ThrowStack, topCard);
 		} else {
 			ThrowStack.setText("Empty\nthrowstack");
+			setCustomImage(ThrowStack,'e');
 		}
 	}
 	
 	/** 
-	 * setImageBack(Label) sets the top card image to the backside of a card deck
+	 * setImageBack(Label, char) sets the top card image to the backside of a card deck
 	 * @param stack
 	 */
-	private static void setImageBack(Label stack) {
-		//TODO: Implement somehow
+	private static void setCustomImage(Label stack, char imgToShow) {
+		String imgDir = "C:\\Users\\Olav\\Downloads\\kort\\png\\";
+		String ext = ".png";
+		String imgName;
+		Image img;
+		ImageView view;
+		
+		switch (imgToShow) {
+		case 'b' -> imgName = "1B";
+		case 'e' -> imgName = "2J"; //empty stack
+		default -> throw new IllegalArgumentException("Illegal image to show: " + imgToShow);
+		}
+		System.out.println(stack + " " + imgName + "STRING: " + imgDir + imgName + ext);
+		try {
+			img = new Image(new FileInputStream(imgDir + imgName + ext));
+			view = new ImageView(img);
+			view.setFitHeight(img.getHeight()/3);
+			view.setFitWidth(img.getWidth()/3);
+			stack.setGraphic(view);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			System.out.println("Could not find file");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Could not find file");
+		}
+				
 	}
 	private static void setImage(Label stack, Card card) {
 		Image img;
@@ -188,25 +214,24 @@ public class SolitaireController {
 			try {
 				Card topCard = stacks.getPlayStacks()[i].get(stacks.getPlayStacks()[i].size() - 1);
 				p[i].setText(topCard.toString());
-				p[i].setTextFill(Paint.valueOf("white"));
 				setImage(p[i],topCard);
 			} catch (Exception IllegalArgumentException) {
 				p[i].setText("Empty\nstack");
-				//TODO: Set empty image
+				setCustomImage(p[i],'e');
+			} finally {
+				p[i].setTextFill(Paint.valueOf("white"));
 			}
 		}
 		for (int i = 0; i < CardStacks.SUITS; i++) {
 			try {
 				Card topCard = stacks.getTopFinalStack(i);
 				f[i].setText(topCard.toString());
-				f[i].setTextFill(Paint.valueOf("white"));
 				setImage(f[i], topCard);
 			} catch (Exception IllegalArgumentException) {
 				f[i].setText("Empty\nstack");
-				//TODO: Set empty image
-			}
-			finally {
-				; //If getTopFinalStack throws, the stack is empty, so f[i] should be a blank stack.
+				setCustomImage(f[i],'e');
+			} finally {
+				f[i].setTextFill(Paint.valueOf("white"));
 			}
 		}
 		try {
@@ -215,7 +240,9 @@ public class SolitaireController {
 			setImage(ThrowStack, topCard);
 		} catch (Exception NullPointerException) {
 			ThrowStack.setText("Empty\nthrowstack");
-			//TODO: Set empty image
+			setCustomImage(ThrowStack,'e');
+		} finally {
+			ThrowStack.setTextFill(Paint.valueOf("white"));
 		}
 	}
 	EventHandler <MouseEvent> dragDetectedEvent = new EventHandler <MouseEvent>() {
