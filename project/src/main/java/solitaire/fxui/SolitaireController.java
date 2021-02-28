@@ -7,6 +7,9 @@ import solitaire.model.CardDeck;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.text.Format;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.stream.FileImageInputStream;
 
@@ -36,7 +39,7 @@ public class SolitaireController {
 	@FXML private Label DrawStack;
 	@FXML private Label ThrowStack;
 
-	Label[] p = new Label[CardStacks.PLAYSTACKSNUM];
+	List<Label>[] p = (List <Label>[]) new ArrayList[CardStacks.PLAYSTACKSNUM];
 	Label[] f = new Label[CardStacks.SUITS];
 	//Label d, t;
 	
@@ -49,22 +52,26 @@ public class SolitaireController {
 		stacks = new CardStacks(deck);
 
 		for (int i = 0; i < CardStacks.PLAYSTACKSNUM; i++) {
-			p[i] = new Label(stacks.getPlayStacks()[i].get(stacks.getPlayStacks()[i].size() - 1).toString());
-			p[i].setTranslateX(40 + 80*i);
-			p[i].setTranslateY(50);
+			p[i] = new ArrayList<>();
+			for (int j = 0; j < stacks.getPlayStacks()[i].size() ; j++) {
+				Label label = new Label(stacks.getPlayStacks()[i].get(j).toString());
+				p[i].add(label);
+				p[i].get(j).setTranslateX(20 + 84*i + 3*j);
+				p[i].get(j).setTranslateY(50 + 3*j);
 			
-		    //Events need to know what stack this card is in 
-		    int[] stackShortArr = new int[2]; 
-		    stackShortArr[0] = 'p';
-		    stackShortArr[1] = i;
-		    p[i].setUserData(stackShortArr);
+				//Events need to know what stack this card is in 
+		    	int[] stackShortArr = new int[3]; 
+		    	stackShortArr[0] = 'p';
+		    	stackShortArr[1] = i;
+		    	stackShortArr[2] = j;
+		    	p[i].get(j).setUserData(stackShortArr);
 			
-			p[i].setOnDragDetected(dragDetectedEvent);
-			p[i].setOnDragOver(dragOverEvent);	
-			p[i].setOnDragDropped(cardDroppedEvent);
-			p[i].setOnMouseClicked(doubleClickCard);
-			
-			PlayStacks.getChildren().add(p[i]);
+		    	p[i].get(j).setOnDragDetected(dragDetectedEvent);
+		    	p[i].get(j).setOnDragOver(dragOverEvent);	
+		    	p[i].get(j).setOnDragDropped(cardDroppedEvent);
+		    	p[i].get(j).setOnMouseClicked(doubleClickCard);
+		    	PlayStacks.getChildren().add(p[i].get(j));
+			}
 		}
 				
 		for (int i = 0; i < CardStacks.SUITS; i++) {
@@ -73,10 +80,6 @@ public class SolitaireController {
 			} catch (Exception NullPointerException) {
 				f[i] = new Label("Empty\nplaceholder");
 			}
-			
-			Image img = new Image("http://goo.gl/kYEQl", true);
-			//ImageView view  = new ImageView(img);
-		    f[i].setGraphic(new ImageView(img));
 			
 		    //Events need to know what stack this card is in 
 			int[] stackShortArr = new int[2];
@@ -137,7 +140,7 @@ public class SolitaireController {
 		case 'e' -> imgName = "2J"; //empty stack
 		default -> throw new IllegalArgumentException("Illegal image to show: " + imgToShow);
 		}
-		System.out.println(stack + " " + imgName + "STRING: " + imgDir + imgName + ext);
+		//System.out.println(stack + " " + imgName + "STRING: " + imgDir + imgName + ext);
 		try {
 			img = new Image(new FileInputStream(imgDir + imgName + ext));
 			view = new ImageView(img);
@@ -210,16 +213,48 @@ public class SolitaireController {
 		//TODO: REMOVE console printout
 		for (int i = 0; i < 7; i++)
 			System.out.println(stacks.getPlayStacks()[i]);
+		
 		for (int i = 0; i < CardStacks.PLAYSTACKSNUM; i++) {
-			try {
-				Card topCard = stacks.getPlayStacks()[i].get(stacks.getPlayStacks()[i].size() - 1);
-				p[i].setText(topCard.toString());
-				setImage(p[i],topCard);
-			} catch (Exception IllegalArgumentException) {
-				p[i].setText("Empty\nstack");
-				setCustomImage(p[i],'e');
-			} finally {
-				p[i].setTextFill(Paint.valueOf("white"));
+			if (p[i].size() != stacks.getPlayStacks()[i].size()) {
+				for (Label cardLabel: p[i]) {
+					PlayStacks.getChildren().remove(cardLabel);
+				}
+				for (int j = 0; j < stacks.getPlayStacks()[i].size(); j++) {
+					Label label = new Label(stacks.getPlayStacks()[i].get(j).toString());
+					p[i].add(label);
+					p[i].get(j).setTranslateX(20 + 84*i + 3*j);
+					p[i].get(j).setTranslateY(50 + 3*j);
+				
+					//Events need to know what stack this card is in 
+			    	int[] stackShortArr = new int[3]; 
+			    	stackShortArr[0] = 'p';
+			    	stackShortArr[1] = i;
+			    	stackShortArr[2] = j;
+			    	p[i].get(j).setUserData(stackShortArr);
+				
+			    	p[i].get(j).setOnDragDetected(dragDetectedEvent);
+			    	p[i].get(j).setOnDragOver(dragOverEvent);	
+			    	p[i].get(j).setOnDragDropped(cardDroppedEvent);
+			    	p[i].get(j).setOnMouseClicked(doubleClickCard);
+			    	PlayStacks.getChildren().add(p[i].get(j));
+				}
+				if (stacks.getPlayStacks()[i].isEmpty()) {
+					p[i].add(new Label("Empty pstack"));
+					PlayStacks.getChildren().add(p[i].get(0));
+					setCustomImage(p[i].get(0), 'e');
+				}
+			}
+			for (int j = 0; j < stacks.getPlayStacks()[i].size(); j++) {
+				try {
+					Card topCard = stacks.getPlayStacks()[i].get(j);
+					p[i].get(j).setText(topCard.toString());
+					setImage(p[i].get(j),topCard);
+				} catch (Exception IllegalArgumentException) {
+					p[i].get(j).setText("Empty\nstack");
+					setCustomImage(p[i].get(j),'e');
+				} finally {
+					p[i].get(j).setTextFill(Paint.valueOf("white"));
+				}
 			}
 		}
 		for (int i = 0; i < CardStacks.SUITS; i++) {
@@ -254,10 +289,10 @@ public class SolitaireController {
 			switch ((char) stackShortArr[0]) {
 			case 'p': {
 				try {
-					Dragboard db = p[stackShortArr[1]].startDragAndDrop(TransferMode.MOVE);
+					Dragboard db = p[stackShortArr[1]].get(stackShortArr[2]).startDragAndDrop(TransferMode.MOVE);
 					
 			        ClipboardContent content = new ClipboardContent();
-			        content.putString("p" + stackShortArr[1] + "\t" + p[stackShortArr[1]].getText());
+			        content.putString("p" + stackShortArr[1] + "\t" + p[stackShortArr[1]].get(stackShortArr[2]).getText());
 			        db.setContent(content);
 			        System.out.println(db.getContent(DataFormat.PLAIN_TEXT));
 				} catch (Exception e) {

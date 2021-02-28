@@ -57,11 +57,14 @@ public class CardStacks {
 	public CardStacks(CardDeck deck) {
 		int deckLength = deck.getCardCount();
 		
-		for (int i = 0; i < PLAYSTACKSNUM; i++) {
-			playStacks[i] = new ArrayList<>();
-		}
+		//TODO: REMOVE, this arraylist declaration is moved into for loop below
+//		for (int i = 0; i < PLAYSTACKSNUM; i++) {
+//			playStacks[i] = new ArrayList<>();
+//		}
+		
 		int pos = 0; //Position of the deck to draw from
 		for (int i = PLAYSTACKSNUM - 1; i >= 0; i--) {
+			playStacks[i] = new ArrayList<>();
 			for (int j = PLAYSTACKSNUM; j >= PLAYSTACKSNUM - i; j--) {
 				playStacks[i].add(deck.getCard(pos));
 				hiddenPlayCards[i] = i;
