@@ -38,7 +38,7 @@ public class SolitaireController {
 	@FXML private AnchorPane FinalStacks;
 	@FXML private Label DrawStack;
 	@FXML private Label ThrowStack;
-
+	
 	List<Label>[] p = (List <Label>[]) new ArrayList[CardStacks.PLAYSTACKSNUM];
 	Label[] f = new Label[CardStacks.SUITS];
 	//Label d, t;
@@ -56,8 +56,7 @@ public class SolitaireController {
 			for (int j = 0; j < stacks.getPlayStacks()[i].size() ; j++) {
 				Label label = new Label(stacks.getPlayStacks()[i].get(j).toString());
 				p[i].add(label);
-				p[i].get(j).setTranslateX(20 + 84*i + 3*j);
-				p[i].get(j).setTranslateY(50 + 3*j);
+				pTranslate(p[i].get(j), i, j);
 			
 				//Events need to know what stack this card is in 
 		    	int[] stackShortArr = new int[3]; 
@@ -97,8 +96,8 @@ public class SolitaireController {
 			FinalStacks.getChildren().add(f[i]);
 		}
 		
-		DrawStack.setText("Backside of cards");
-		//DrawStack.setVisible(false);
+		DrawStack.setText("");
+		setCustomImage(DrawStack, 'b');
 		
 		int[] stackShortArr = new int[2]; 
 		stackShortArr[0] = 't';
@@ -113,7 +112,7 @@ public class SolitaireController {
 	
 	@FXML
 	void handleClickDrawStack() {
-		stacks.deal(1);
+		stacks.deal(3);
 		if (!stacks.getThrowStack().isEmpty()) {
 			Card topCard = stacks.getThrowStack().get(stacks.getThrowStack().size() - 1);
 			ThrowStack.setText(topCard.toString());
@@ -222,8 +221,7 @@ public class SolitaireController {
 				for (int j = 0; j < stacks.getPlayStacks()[i].size(); j++) {
 					Label label = new Label(stacks.getPlayStacks()[i].get(j).toString());
 					p[i].add(label);
-					p[i].get(j).setTranslateX(20 + 84*i + 3*j);
-					p[i].get(j).setTranslateY(50 + 3*j);
+					pTranslate(p[i].get(j), i, j);
 				
 					//Events need to know what stack this card is in 
 			    	int[] stackShortArr = new int[3]; 
@@ -280,6 +278,12 @@ public class SolitaireController {
 			ThrowStack.setTextFill(Paint.valueOf("white"));
 		}
 	}
+	
+	private void pTranslate(Label l, int i, int j) {
+		l.setTranslateX(20 + 84*i/* + 3*j*/);
+		l.setTranslateY(15*j);
+	}
+	
 	EventHandler <MouseEvent> dragDetectedEvent = new EventHandler <MouseEvent>() {
 		@Override
 		public void handle(MouseEvent event) {
@@ -294,6 +298,7 @@ public class SolitaireController {
 			        ClipboardContent content = new ClipboardContent();
 			        content.putString("p" + stackShortArr[1] + "\t" + p[stackShortArr[1]].get(stackShortArr[2]).getText());
 			        db.setContent(content);
+			        //db.setDragView(cardToImg(Card.stringToCard(p[stackShortArr[1]].get(stackShortArr[2]).getText())));
 			        System.out.println(db.getContent(DataFormat.PLAIN_TEXT));
 				} catch (Exception e) {
 					throw new IllegalArgumentException("Card cannot be moved here.");
@@ -365,7 +370,7 @@ public class SolitaireController {
 			char suit = cardString.charAt(0);
 			int value = Integer.parseInt(cardString.substring(1));
 			Card card = new Card(suit, value);
-			
+						
 			String fromStack = event.getDragboard().getString().substring(0, 2);
 			
 			int[] stackShortArr = (int[]) ((Label) event.getSource()).getUserData();
@@ -376,6 +381,7 @@ public class SolitaireController {
 					stacks.moveCard(card, fromStack, "p" + stackShortArr[1]);
 					updateStack();
 				} catch (Exception e) {
+					e.printStackTrace();
 					throw new IllegalArgumentException("Card cannot be moved to this playStack. Exception:" + e);
 				}
 				break;
@@ -384,6 +390,7 @@ public class SolitaireController {
 					stacks.moveCard(card, fromStack, "f" + stackShortArr[1]);
 					updateStack();
 				} catch (Exception e) {
+					e.printStackTrace();
 					throw new IllegalArgumentException("Card cannot be moved to this finalStack. Exception:" + e);
 				}
 				break;

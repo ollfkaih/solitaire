@@ -1,6 +1,5 @@
 package solitaire.model;
 
-import java.io.Console;
 import java.util.*;
 
 public class CardStacks {
@@ -118,16 +117,50 @@ public class CardStacks {
 	 * and therefore free to be moved
 	 */
 	private boolean isCardFree(Card card, List<Card> fromStack) {
-		//System.out.println(card + " SJEKK1 " + fromStack);
-		if (this.drawingStack.contains(card))
+		System.out.println(card + " Ligger i? " + fromStack + " " );
+		if (drawingStack.contains(card))
 			return false;
 		else if (fromStack.get(fromStack.size() - 1).equals(card)) {
 			return true;
 		} else {
+			for (int i = 0; i < fromStack.size(); i++) {
+				if (fromStack.get(i).equals(card)) {
+					for (int j = i; j < fromStack.size() - 1; j++) {
+						switch (fromStack.get(j).getSuit()) {
+						case 'D', 'H' -> {
+							switch (fromStack.get(j + 1).getSuit()) {
+							case 'D', 'H' -> {
+								return false;
+							} 
+							case 'S', 'C' -> {
+								break;
+							}
+							}
+						}
+						case 'S', 'C' -> {
+							switch (fromStack.get(j + 1).getSuit()) {
+							case 'D', 'H' -> {
+								break;
+							} 
+							case 'S', 'C' -> {
+								return false;
+							}
+							}
+							break;
+						}
+						default ->
+							throw new IllegalArgumentException("Unexpected value: " + fromStack.get(j).getSuit());
+						}
+					}
+					return true;
+				}
+			}
+		}
+		/*else {
 			System.out.println(fromStack.get(fromStack.size() - 1));
 			return true;
-		}
-		//return false;
+		}*/
+		return false;
 	}
 	
 	/**
@@ -185,13 +218,20 @@ public class CardStacks {
 				}
 			} return true; //No stacks had a card of the same suit, and topCard is an ace.
 		} else {
+			int i = 0;
 			for (Card[] currentStack : this.finalStacks) {
-				for (int i = 1; i < currentStack.length; i++) {
-					if (currentStack[i] == null && currentStack[i-1] != null) {
-						if (currentStack[i-1].getFace() == topCard.getFace() - 1 && currentStack[i-1].getSuit() == topCard.getSuit() && toStack.equals(currentStack)) {
-							return true;
+				if (toStack.equals(currentStack)) {
+					if (getTopFinalStack(i).getSuit() == topCard.getSuit()) {
+						for (int j = 1; j < currentStack.length; j++) {
+							if (currentStack[j] == null && currentStack[j-1] != null) {
+								if (currentStack[j-1].equals(new Card(topCard.getSuit(),topCard.getFace() - 1))) {
+									return true;
+								}
+							}
 						}
 					}
+				} else {
+					i++;
 				}
 			}
 		}
@@ -235,7 +275,7 @@ public class CardStacks {
 	private void moveCard(Card topCard, List<Card> fromStack, Card[] toStack) {
 		//System.out.println(topCard + " " + toStack);
 		if (!legalMove(topCard, fromStack, toStack))
-			throw new IllegalArgumentException("Illegal move");
+			throw new IllegalArgumentException(String.format("Illegal move: %s from %s", topCard, fromStack));
 		else {
 			//Reveals a playCard when a card is moved from that stack.
 			for (int i = 0; i < PLAYSTACKSNUM; i++) {
@@ -389,7 +429,7 @@ public class CardStacks {
 		return true;
 	}
 	
-	String findCard(Card card) {
+	public String findCard(Card card) {
 		for (int i = 0; i < PLAYSTACKSNUM; i++) {
 			for (Card c: this.playStacks[i]) {
 				if (c.equals(card)) {
@@ -417,22 +457,18 @@ public class CardStacks {
 			try {
 				thisStackTopCard = this.getTopFinalStack(i);
 			} catch (Exception IllegalArgumentException) {
-				moveCard(card, fromStack, "f" + i);
+				if (card.getFace() == 1)  
+					moveCard(card, fromStack, "f" + i);
 				return;
 			}
 			if (thisStackTopCard.getSuit() == card.getSuit()) {
 				try {
 					moveCard(card, fromStack, "f" + i);
-				} finally {
-					//Card may not have been one face value higher
+				} catch (IllegalArgumentException e) {
+					//Card may not have been one face value higher, do nothing
+					throw new IllegalArgumentException("Card face is not one more than the card you're attemting to put it on");
 				}
 			}
-//			System.out.println(i);
-//			try {
-//				moveCard(card, fromStack, "f" + i);
-//			} catch (Exception IllegalArgumentException) {
-//				throw new IllegalArgumentException();
-//			}
 		}
 	}
 	
