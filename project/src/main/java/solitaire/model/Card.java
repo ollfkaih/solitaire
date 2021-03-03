@@ -3,6 +3,8 @@ package solitaire.model;
 public class Card {
 	private char suit;
 	private int value;
+	enum Stack {DECK, P0, P1, P2, P3, P4, P5, P6, F0, F1, F2, F3, THROWSTACK}
+	private Stack parentStack = Stack.DECK;
 	
 	public Card(char suit, int value) {
 		legalSuit(suit);
@@ -35,7 +37,15 @@ public class Card {
 	public int getFace() {
 		return this.value;
 	}
-	
+
+	public Stack getParentStack() {
+		return parentStack;
+	}
+
+	public void setParentStack(Stack parentStack) {
+		//TODO: validate
+		this.parentStack = parentStack;
+	}
 	/**
 	 * legalCard checks that the suit and face value of a given card is legal 
 	 * @return
@@ -76,8 +86,4 @@ public class Card {
 	public String toString() {
 		return String.format("%c%d", this.suit, this.value);
 	}
-	
-	/*public static void main(String[] args) {
-		System.out.println(stringToCard("C10").getSuit());
-	}*/
 }
