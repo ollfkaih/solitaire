@@ -59,40 +59,40 @@ public class GameBoard {
 		else if (fromStack.get(fromStack.getCardCount() - 1).equals(card)) {
 			return true;
 		} else {
-			for (int i = 0; i < fromStack.getCardCount(); i++) {
-				if (fromStack.get(i).equals(card)) {
-					for (int j = i; j < fromStack.getCardCount() - 1; j++) {
-						switch (fromStack.get(j).getSuit()) {
-						case 'D', 'H' -> {
-							switch (fromStack.get(j + 1).getSuit()) {
-							case 'D', 'H' -> {
-								return false;
-							} 
-							case 'S', 'C' -> {
-								break;
-							}
-							}
-						}
-						case 'S', 'C' -> {
-							switch (fromStack.get(j + 1).getSuit()) {
-							case 'D', 'H' -> {
-								break;
-							} 
-							case 'S', 'C' -> {
-								return false;
-							}
-							}
+			for (int i = fromStack.indexOf(card); i < fromStack.getCardCount() - 1; i++) {
+				//Check that the card on top is a different color and face value one less
+				//If the cards follow the rules, each switch ends with a break statement, and if we never hit a condition not allowed, we "avoid" 
+				//the return statements until the for loop has completed and we end up at the return true statement
+				switch (fromStack.get(i).getSuit()) {
+				case 'D', 'H' -> {
+					switch (fromStack.get(i + 1).getSuit()) {
+					case 'D', 'H' -> {
+						return false;
+					} 
+					case 'S', 'C' -> {
+						if (fromStack.get(i + 1).getFace() != fromStack.get(i).getFace() - 1)
+							return false;
+						else
 							break;
-						}
-						default ->
-							throw new IllegalArgumentException("Unexpected value: " + fromStack.get(j).getSuit());
-						}
 					}
-					return true;
+					}
+				} case 'S', 'C' -> {
+					switch (fromStack.get(i + 1).getSuit()) {
+					case 'S', 'C' -> {
+						return false;
+					} 
+					case 'D', 'H' -> {
+						if (fromStack.get(i + 1).getFace() != fromStack.get(i).getFace() - 1)
+							return false;
+						else
+							break;
+					}
+					}
 				}
-			}
+				}	
+			} 
+			return true;
 		}
-		return false;
 	}
 	/**
 	 * Legalmove(Card, CardStack, CardStack) checks if the card is free (with isCardFree(card, CardStack))
@@ -118,7 +118,7 @@ public class GameBoard {
 			if (card.getFace() == 1) {
 				for (CardStack currentStack : this.finalStacks) {
 					if (!currentStack.empty()) {
-						if (currentStack.get(0).getSuit() == card.getSuit()) {
+						if (currentStack.get(0).getSuit() == card.getSuit() && currentStack != fromStack) {
 							throw new IllegalStateException("The game is in an illegal state: you are attempting to put an ace in a final stack, "
 									+ "but there is already a card of the same suit in a final stack.");
 						}
@@ -168,7 +168,6 @@ public class GameBoard {
 		}
 		
 		}
-		
 		throw new IllegalStateException(String.format("How did we get here? card: %s fromStack: %s toStack: %s", card, fromStack, toStack));
 		//return false;
 	}
@@ -183,11 +182,8 @@ public class GameBoard {
 	public void moveCard(int indexOfCard, CardStack fromStack, CardStack toStack) {
 		Card card = fromStack.get(indexOfCard);
 		if (!legalMove(card, fromStack, toStack)) {
-			//TODO: REMOVE
-			System.out.println(String.format("Card: %s in stack %s cannot legally be moved to %s. Input index: %s", card, fromStack, toStack, indexOfCard));
-			throw new IllegalArgumentException("The card " + card + " cannot be moved on top of " + toStack.get(toStack.size() - 1));
+			throw new IllegalArgumentException(String.format("Card: %s in stack %s cannot legally be moved to %s. Input index: %s", card, fromStack, toStack, indexOfCard));
 		}
-		System.out.println(fromStack.getCardCount() - indexOfCard);;
 		fromStack.play(toStack, indexOfCard);
 	}
 	

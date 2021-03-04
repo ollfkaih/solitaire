@@ -3,7 +3,7 @@ package solitaire.model;
 public class Card {
 	private char suit;
 	private int value;
-	enum Stack {DECK, P0, P1, P2, P3, P4, P5, P6, F0, F1, F2, F3, THROWSTACK}
+	public enum Stack {DECK, P0, P1, P2, P3, P4, P5, P6, F0, F1, F2, F3, THROWSTACK}
 	private Stack parentStack = Stack.DECK;
 	
 	public Card(char suit, int value) {

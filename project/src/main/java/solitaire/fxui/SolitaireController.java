@@ -3,6 +3,7 @@ package solitaire.fxui;
 import solitaire.model.GameBoard;
 import solitaire.model.Card;
 import solitaire.model.CardDeck;
+import solitaire.model.CardStack;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,6 +12,7 @@ import java.util.List;
 
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -39,7 +41,9 @@ public class SolitaireController {
 	
 	List<Label>[] p = (List <Label>[]) new ArrayList[GameBoard.PLAYSTACKSNUM];
 	Label[] f = new Label[GameBoard.SUITS];
-	//Label d, t;
+	private Label draggedLabel;
+	private Label dropLabel;
+	private CardStack dragParent;
 	
 	@FXML
 	private void initialize() {
@@ -55,12 +59,10 @@ public class SolitaireController {
 		DrawStack.setText("");
 		setCustomImage(DrawStack, 'b');
 		
-		int[] stackShortArr = new int[3]; 
-		stackShortArr[0] = 't';
-		
-		//ThrowStack.setText("Empty\nthrowstack");
-		ThrowStack.setUserData(stackShortArr);
-		ThrowStack.setOnDragDetected(dragDetectedEvent);
+		char targetStack = 't';
+	    ThrowStack.setUserData(targetStack);
+		setCustomImage(ThrowStack,'e');
+		ThrowStack.setOnDragDetected((MouseEvent event) -> dragDetected(event, ThrowStack, -1, -1, stacks.getThrowStack().getStackName()));
 		ThrowStack.setOnMouseClicked(doubleClickCard);
 		
 		updateStack();
@@ -72,7 +74,7 @@ public class SolitaireController {
 		if (!stacks.getThrowStack().isEmpty()) {
 			Card topCard = stacks.getThrowStack().get(stacks.getThrowStack().size() - 1);
 			ThrowStack.setText(topCard.toString());
-			setImage(ThrowStack, topCard);
+			setCardImage(ThrowStack, topCard);
 		} else {
 			ThrowStack.setText("Empty\nthrowstack");
 			setCustomImage(ThrowStack,'e');
@@ -83,7 +85,7 @@ public class SolitaireController {
 	 * setCustomImage(Label, char) sets the top card image to the backside of a card deck
 	 * @param stack
 	 */
-	private static void setCustomImage(Label stack, char imgToShow) {
+	private static boolean setCustomImage(Label stack, char imgToShow) {
 		String imgDir = IMGDIR;
 		String ext = ".png";
 		String imgName;
@@ -95,7 +97,6 @@ public class SolitaireController {
 		case 'e' -> imgName = "2J"; //empty stack
 		default -> throw new IllegalArgumentException("Illegal image to show: " + imgToShow);
 		}
-		//System.out.println(stack + " " + imgName + "STRING: " + imgDir + imgName + ext);
 		try {
 			img = new Image(SolitaireController.class.getResourceAsStream(imgDir + imgName + ext));
 			view = new ImageView(img);
@@ -105,10 +106,11 @@ public class SolitaireController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Could not find file");
+			return false;
 		}
-				
+		return true;		
 	}
-	private static void setImage(Label stack, Card card) {
+	private static boolean setCardImage(Label stack, Card card) {
 		Image img;
 		ImageView view;
 		try {
@@ -119,8 +121,9 @@ public class SolitaireController {
 			stack.setGraphic(view);
 		} catch (Exception e) {
 			e.printStackTrace();
+			return false;
 		}
-
+	return true;
 	}
 	private static Image cardToImg(Card card) {
 		String imgDir = IMGDIR;
@@ -178,30 +181,28 @@ public class SolitaireController {
 						e.printStackTrace();
 					}
 				
-					//Events need to know what stack this card is in 
-			    	int[] stackShortArr = new int[3]; 
-			    	stackShortArr[0] = 'p';
-			    	stackShortArr[1] = i;
-			    	stackShortArr[2] = j;
-			    	p[i].get(j).setUserData(stackShortArr);
-				
-			    	p[i].get(j).setOnDragDetected(dragDetectedEvent);
+					char targetStack = 'p';
+				    p[i].get(j).setUserData(targetStack);
+			    	
+					int thisIndexi = i;
+					int thisIndexj = j;
+			    	p[i].get(j).setOnDragDetected((MouseEvent event) -> dragDetected(event, p[thisIndexi].get(thisIndexj), thisIndexi, thisIndexj, stacks.getPlayStack(thisIndexi).getStackName()));
 			    	p[i].get(j).setOnDragOver(dragOverEvent);	
-			    	p[i].get(j).setOnDragDropped(cardDroppedEvent);
+			    	p[i].get(j).setOnDragDropped((DragEvent event) -> drop(event, p[thisIndexi].get(thisIndexj), thisIndexi, thisIndexj, stacks.getPlayStack(thisIndexi).getStackName()));
 			    	p[i].get(j).setOnMouseClicked(doubleClickCard);
 			    	PlayStacks.getChildren().add(p[i].get(j));
 				}
 				if (stacks.getPlayStack(i).isEmpty()) {
-					p[i].add(new Label("Empty pstack"));
-					PlayStacks.getChildren().add(p[i].get(0));
+					p[i].add(new Label("Empty\npstack"));
 					setCustomImage(p[i].get(0), 'e');
+					PlayStacks.getChildren().add(p[i].get(0));
 				}
 			}
 			for (int j = 0; j < stacks.getPlayStack(i).getCardCount(); j++) {
 				try {
 					Card topCard = stacks.getPlayStack(i).get(j);
 					p[i].get(j).setText(topCard.toString());
-					setImage(p[i].get(j),topCard);
+					setCardImage(p[i].get(j),topCard);
 				} catch (Exception IllegalArgumentException) {
 					p[i].get(j).setText("Empty\nstack");
 					setCustomImage(p[i].get(j),'e');
@@ -217,21 +218,21 @@ public class SolitaireController {
 				f[i] = new Label(stacks.getFinalStack(i).peek().toString());
 			try {
 				//Events need to know what stack this card is in 
-				int[] stackShortArr = new int[2];
-			    stackShortArr[0] = 'f';
-			    stackShortArr[1] = i;
-			    f[i].setUserData(stackShortArr);
+				char targetStack = 'f';
+			    f[i].setUserData(targetStack);
 				
-			    f[i].setOnDragDetected(dragDetectedEvent);
+			    int thisIndexi = i;
+			    int thisIndexj = stacks.getFinalStack(i).getCardCount() - 1;
+			    f[i].setOnDragDetected((MouseEvent event) -> dragDetected(event, f[thisIndexi], thisIndexi, thisIndexj, stacks.getFinalStack(thisIndexi).getStackName()));
 				f[i].setTranslateX(70 + 90*i);
 				f[i].setTranslateY(50);
 				
 				f[i].setOnDragOver(dragOverEvent);	
-				f[i].setOnDragDropped(cardDroppedEvent);
+				f[i].setOnDragDropped((DragEvent event) -> drop(event, f[thisIndexi], thisIndexi, thisIndexj, stacks.getPlayStack(thisIndexi).getStackName()));
 				
 				Card topCard = stacks.getFinalStack(i).peek();
 				f[i].setText(topCard.toString());
-				setImage(f[i], topCard);
+				setCardImage(f[i], topCard);
 			} catch (Exception IllegalArgumentException) {
 				f[i].setText("Empty\nstack");
 				setCustomImage(f[i],'e');
@@ -244,7 +245,8 @@ public class SolitaireController {
 		try {
 			Card topCard = stacks.getThrowStack().get(stacks.getThrowStack().size() - 1);
 			ThrowStack.setText(topCard.toString());
-			setImage(ThrowStack, topCard);
+			setCardImage(ThrowStack, topCard);
+			System.out.println(String.format("Cards in the throwStack: %s", stacks.getThrowStack().toString()));
 		} catch (Exception NullPointerException) {
 			ThrowStack.setText("Empty\nthrowstack");
 			setCustomImage(ThrowStack,'e');
@@ -259,55 +261,24 @@ public class SolitaireController {
 		l.setTranslateY(15*j);
 	}
 	
-	EventHandler <MouseEvent> dragDetectedEvent = new EventHandler <MouseEvent>() {
-		@Override
-		public void handle(MouseEvent event) {
-			
-			int[] stackShortArr = (int[]) ((Label) event.getSource()).getUserData();
-			
-			switch ((char) stackShortArr[0]) {
-			case 'p': {
-				try {
-					Dragboard db = p[stackShortArr[1]].get(stackShortArr[2]).startDragAndDrop(TransferMode.MOVE);
-					
-			        ClipboardContent content = new ClipboardContent();
-			        content.putString("p" + stackShortArr[1] + stackShortArr[2]); //+ "\t" + p[stackShortArr[1]].get(stackShortArr[2]).getText()
-			        db.setContent(content);
-			        //db.setDragView(cardToImg(Card.stringToCard(p[stackShortArr[1]].get(stackShortArr[2]).getText())));
-			        System.out.println(db.getContent(DataFormat.PLAIN_TEXT));
-				} catch (Exception e) {
-					throw new IllegalArgumentException("Card cannot be moved here.");
-				}
-				break;
-			} case 'f': {
-				try {
-					Dragboard db = f[stackShortArr[1]].startDragAndDrop(TransferMode.MOVE);
-					
-			        ClipboardContent content = new ClipboardContent();
-			        content.putString("f" + stackShortArr[1] + stackShortArr[2]); //+ "\t" + f[stackShortArr[1]].getText()
-			        db.setContent(content);
-				} catch (Exception e) {
-					throw new IllegalArgumentException("Card cannot be moved here.");
-				}
-				break;
-			} case 't': {
-				try {
-					Dragboard db = ThrowStack.startDragAndDrop(TransferMode.MOVE);
-					
-			        ClipboardContent content = new ClipboardContent();
-			        content.putString("t" + "\t\t" ); //((Label) event.getSource()).getText()
-			        db.setContent(content);
-			        //System.out.println(content);
-				} catch (Exception e) {
-					throw new IllegalArgumentException("Card cannot be moved here.");
-				}
-				break;
-			} default: {
-				event.consume();
-			}
-			event.consume();
-		}}
-	};
+	private void dragDetected(MouseEvent event, Label l, int indexOfStacks, int indexOfList, Card.Stack stackName) {
+		
+		draggedLabel = l;
+		dragParent = stacks.findCard(Card.stringToCard(l.getText().toString()));
+		Dragboard db = l.startDragAndDrop(TransferMode.MOVE);
+		
+		//l.snapshot ? for rendering dragview?
+		String dbFromStack = "" + ((char) (stackName.toString().charAt(0) + 32)) + indexOfStacks + indexOfList; //Ascii char A -> a has a delta of 32 
+		//TODO: remove
+		//System.out.println("dbFromStack: " + dbFromStack);
+		
+	    ClipboardContent content = new ClipboardContent();
+	    //content.put(JAVA_FORMAT, draggedItem.getValue());
+	    content.putString(dbFromStack);
+	    db.setContent(content);
+	    db.setDragView(l.snapshot(null, null));
+	    event.consume();
+	}
 	
 	EventHandler <DragEvent> dragOverEvent = new EventHandler <DragEvent>() {
         public void handle(DragEvent event) {
@@ -335,53 +306,33 @@ public class SolitaireController {
 	        }
 		}
 	};
-	EventHandler <DragEvent> cardDroppedEvent = new EventHandler <DragEvent>() {
-		@Override
-		public void handle(DragEvent event) {
-			//event.acceptTransferModes(TransferMode.MOVE);
-			
-			//TODO:REMOVE
-			//System.out.println(String.format("Dragboardstring: %s stackTargetArray: %d", event.getDragboard().getString(), ((int[]) ((Label) event.getTarget()).getUserData())[1]));
-			//System.out.println(((Label) event.getSource()).getParent());
-			
-			int[] stackTargetArray = (int[]) ((Label) event.getTarget()).getUserData();
-			
-			switch (event.getDragboard().getString().charAt(0)) {
-			case 'p' -> {
-				int fromStackIndex = Integer.parseInt(event.getDragboard().getString().substring(1,2));
-				int inStackIndex = Integer.parseInt(event.getDragboard().getString().substring(2,3));
-				
-				switch ((char) stackTargetArray[0]) {
-				case 'p' -> 
-					stacks.moveCard(inStackIndex, stacks.getPlayStack(fromStackIndex), stacks.getPlayStack(stackTargetArray[1]));
-				case 'f' ->
-					stacks.moveCard(inStackIndex, stacks.getFinalStack(fromStackIndex), stacks.getPlayStack(stackTargetArray[1]));
-				}
-				
-			} case 'f' -> {
-				int fromStackIndex = Integer.parseInt(event.getDragboard().getString().substring(1,2));
-				int inStackIndex = Integer.parseInt(event.getDragboard().getString().substring(2,3));
-				
-				switch ((char) stackTargetArray[0]) {
-				case 'p' ->
-					stacks.moveCard(inStackIndex, stacks.getFinalStack(fromStackIndex), stacks.getPlayStack(stackTargetArray[1]));
-				case 'f' ->
-					stacks.moveCard(inStackIndex, stacks.getFinalStack(fromStackIndex), stacks.getFinalStack(stackTargetArray[1]));				
-				}
-			}
-			case 't' -> {
-				//stacks.moveCard(stacks.getThrowStack().size() - 1, stacks.getThrowStack(), stacks.getPlayStack(stackTargetArray[1]));
-				int inStackIndex = stacks.getThrowStack().size() - 1;
-				switch ((char) stackTargetArray[0]) {
-				case 'p' ->
-					stacks.moveCard(inStackIndex, stacks.getThrowStack(), stacks.getPlayStack(stackTargetArray[1]));
-				case 'f' ->
-					stacks.moveCard(inStackIndex, stacks.getThrowStack(), stacks.getFinalStack(stackTargetArray[1]));				
-				}
-			}
-			}
-			updateStack();
-			event.consume();
+	
+	private void drop(DragEvent event, Label l, int indexOfStacks, int indexOfList, Card.Stack stackName) {
+		Dragboard db = event.getDragboard();
+		if (!db.hasString())
+			throw new IllegalArgumentException("The dragboard is empty for " + event.getSource());
+		dropLabel = l;
+		
+		if (draggedLabel == dropLabel)
+			return;
+		int inStackIndex = 0;
+		char targetStack = ((Label) event.getTarget()).getUserData().toString().charAt(0);
+		char fromType = db.getString().charAt(0);
+		
+		if (fromType != 't') {
+			inStackIndex = Integer.parseInt(db.getString().substring(2));
+		} else {
+			inStackIndex = stacks.getThrowStack().size() - 1;
 		}
-	};
+
+		switch (targetStack) {
+		case 'p' -> {
+			stacks.moveCard(inStackIndex, dragParent, stacks.getPlayStack(indexOfStacks));
+		} case 'f' -> {
+			stacks.moveCard(inStackIndex, dragParent, stacks.getFinalStack(indexOfStacks));
+		}
+		}
+		updateStack();
+		event.consume();
+	}
 }
