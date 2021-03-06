@@ -21,8 +21,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Paint;
-
 
 public class SolitaireController {
 	
@@ -44,9 +42,8 @@ public class SolitaireController {
 	@FXML
 	private void initialize() {
 			
-		deck = new CardDeck(SolConst.CARDSINSUITE);
-		for (int i = 0; i < 3; i++)
-			deck.shufflePerfectly();
+		deck = new CardDeck(SolConst.CARDSINSUIT);
+		deck.shuffle();
 		stacks = new GameBoard(deck);
 		
 		for (int i = 0; i < SolConst.SUITS; i++) {

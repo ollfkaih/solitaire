@@ -1,5 +1,6 @@
 package solitaire.model;
 
+import java.util.Random;
 import java.util.Stack;
 
 @SuppressWarnings("serial")
@@ -61,6 +62,30 @@ public class CardDeck extends Stack<Card>{
 			this.set(i, topDeck[i/2]);
 			this.set(i+1,bottomDeck[i/2]);
 		}		
+	}
+
+	public void shuffle() {
+		Random rnd = new Random();
+		int index;
+		int cardCountNow = this.getCardCount();
+		CardDeck tempDeck = (CardDeck) this.clone();
+
+		for (int i = 0; i < cardCountNow; i++) {
+			index = (rnd.nextInt(SolConst.SUITS*SolConst.CARDSINSUIT));
+			if (tempDeck.get(index) != null) {
+				this.set(i, tempDeck.get(index));
+				tempDeck.set(index, null);
+			} else {
+				while (tempDeck.get(index) == null) {
+					if (index == 51)
+						index = 0;
+					else
+						index++;
+				}
+				this.set(i, tempDeck.get(index));
+				tempDeck.set(index, null);
+			}
+		}
 	}
 	
 	public void deal(CardStack stack, int n) {

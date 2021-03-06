@@ -36,7 +36,7 @@ public class GameBoard {
 			playStacks[i].setHiddenCards(i);
 		}
 		
-		deck.deal(drawingStack, SolConst.CARDSINSUITE * SolConst.SUITS - pos);
+		deck.deal(drawingStack, SolConst.CARDSINSUIT * SolConst.SUITS - pos);
 		
 		for (int i = 0; i < SolConst.SUITS; i++)
 			finalStacks[i] = new CardStack(Stack.valueOf("F" + i));
@@ -48,9 +48,10 @@ public class GameBoard {
 	private boolean isCardFree(Card card, CardStack fromStack) {
 		if (!fromStack.contains(card)) 
 			throw new IllegalArgumentException("The card " + card + " is not a part of " + fromStack.toString());
-		if (drawingStack.contains(card))
+		if (drawingStack.contains(card)) {
+			System.out.println(drawingStack);
 			return false;
-		else if (fromStack.get(fromStack.getCardCount() - 1).equals(card)) {
+		} else if (fromStack.get(fromStack.getCardCount() - 1).equals(card)) {
 			return true;
 		} else {
 			for (int i = fromStack.indexOf(card); i < fromStack.getCardCount() - 1; i++) {
@@ -182,7 +183,6 @@ public class GameBoard {
 	}
 	
 		
-	//TODO: Use deal in CardStack
 	/**
 	 * deal takes the top n (or the remaining cards if less than n) cards from the drawingStack and puts them on the
 	 * throwStack 
@@ -241,7 +241,7 @@ public class GameBoard {
 			else 
 				return false;
 			
-			for (int j = 0; j < SolConst.CARDSINSUITE; j++) {
+			for (int j = 0; j < SolConst.CARDSINSUIT; j++) {
 				if ( ! (this.finalStacks[i].get(j).getFace() == j + 1 && this.finalStacks[i].get(j).getSuit() == currentSuit)) {
 					return false;
 				}
