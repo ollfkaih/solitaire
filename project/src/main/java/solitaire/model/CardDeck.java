@@ -2,16 +2,16 @@ package solitaire.model;
 
 import java.util.Stack;
 
+@SuppressWarnings("serial")
 public class CardDeck extends Stack<Card>{
 	
 	public CardDeck(int n) {
 		if (n > 13)
 			throw new IllegalArgumentException("The deck has to be at most 52 cards");
-		// Man kunne eventuelt tatt "to kortstokker" sammen, men justert slik at kortene gikk fra f.eks. 1-8 i hver 
 		
 		for (char suit: "SHDC".toCharArray()) {
-			for (int j = 1; j <= n; j++) {
-				this.add(new Card(suit, j)); //i*n er kort som allerede er trekt, j er verdien vi vil ha på kortet (som teller fra 1, ikke 0)
+			for (int i = 1; i <= n; i++) {
+				this.add(new Card(suit, i));
 			}
 		}
 	}

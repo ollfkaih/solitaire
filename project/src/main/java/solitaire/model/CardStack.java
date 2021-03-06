@@ -2,16 +2,17 @@ package solitaire.model;
 
 import java.util.Stack;
 
+@SuppressWarnings("serial")
 public class CardStack extends Stack<Card> {
-		
-	private int hiddenCards;
-	private Card.Stack stackName;
 	
-	public Card.Stack getStackName() {
+	private int hiddenCards;
+	private SolConst.Stack stackName;
+	
+	public SolConst.Stack getStackName() {
 		return stackName;
 	}
 
-	public CardStack(Card.Stack stackName) {
+	public CardStack(SolConst.Stack stackName) {
 		this.stackName = stackName;
 	}
 	
@@ -32,10 +33,22 @@ public class CardStack extends Stack<Card> {
 	public Card get(int n) {
 		if (n < 0 || n > this.size() - 1) 
 			throw new IllegalArgumentException("The stack is smaller than the card number requested");
-		else if (n < hiddenCards)
+		else if (this.isHidden(n))
 			throw new IllegalArgumentException("This card is hidden");
 		else 
 			return super.get(n);
+	}
+	
+	/**
+	 * Returns true if the card at index n in this stack is hidden
+	 * @param n
+	 * @return
+	 */
+	public boolean isHidden(int n) {
+		if (n < hiddenCards)
+			return true;
+		else
+			return false;
 	}
 		
 	public void addCard(Card card) {		
@@ -54,11 +67,12 @@ public class CardStack extends Stack<Card> {
 		while (indexofCard < this.getCardCount()) {
 			Card tempCard = this.get(indexofCard);
 			this.remove(indexofCard);
-			if (hiddenCards > 0)
-				hiddenCards--;
 			stack.addCard(tempCard);
 		}
- 		//return true;
+		
+		//In playStacks, reveal another card if we have removed all visible cards
+		if (indexofCard == hiddenCards && hiddenCards > 0)
+			hiddenCards--;
 	}
 
 }

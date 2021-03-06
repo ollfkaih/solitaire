@@ -1,18 +1,12 @@
 package solitaire.model;
 
-import java.io.Console;
-import java.util.*;
+import solitaire.model.SolConst.*;
 
 public class GameBoard {
-	public final static int PLAYSTACKSNUM = 7; // Seven play stacks
-	public final static int SUITS = 4;
-	public final static int CARDSINSUITE = 13;
-	
-	private CardStack[] finalStacks = new CardStack[SUITS]; //four final stacks 
-	private CardStack[] playStacks = new CardStack[PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
-	private CardStack drawingStack = new CardStack(Card.Stack.DECK); //the stack cards are drawn from, three by three
-	private CardStack throwStack = new CardStack(Card.Stack.THROWSTACK); //The stack of drawn cards next to the drawingStack
-	//private int[] hiddenPlayCards = new int[PLAYSTACKSNUM]; //Number of hidden cards in the nth playStack //TODO: make use of
+	private CardStack[] finalStacks = new CardStack[SolConst.SUITS]; //four final stacks 
+	private CardStack[] playStacks = new CardStack[SolConst.PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
+	private CardStack drawingStack = new CardStack(Stack.DECK); //the stack cards are drawn from, three by three
+	private CardStack throwStack = new CardStack(Stack.THROWSTACK); //The stack of drawn cards next to the drawingStack
 			
 	public CardStack getFinalStack(int i) {
 		return finalStacks[i];
@@ -35,17 +29,17 @@ public class GameBoard {
 	public GameBoard(CardDeck deck) {
 		
 		int pos = 0; //Position of the deck to draw from
-		for (int i = PLAYSTACKSNUM - 1; i >= 0; i--) {
-			playStacks[i] = new CardStack(Card.Stack.valueOf("P" + i));
+		for (int i = SolConst.PLAYSTACKSNUM - 1; i >= 0; i--) {
+			playStacks[i] = new CardStack(Stack.valueOf("P" + i));
 			deck.deal(playStacks[i], i + 1);
 			pos += i + 1;
-			//playStacks[i].setHiddenCards(i);
+			playStacks[i].setHiddenCards(i);
 		}
 		
-		deck.deal(drawingStack, CARDSINSUITE * SUITS - pos);
+		deck.deal(drawingStack, SolConst.CARDSINSUITE * SolConst.SUITS - pos);
 		
-		for (int i = 0; i < SUITS; i++)
-			finalStacks[i] = new CardStack(Card.Stack.valueOf("F" + i));
+		for (int i = 0; i < SolConst.SUITS; i++)
+			finalStacks[i] = new CardStack(Stack.valueOf("F" + i));
 	}
 		
 	/**
@@ -234,20 +228,20 @@ public class GameBoard {
 	public boolean isSolved() {
 		if (this.drawingStack.size() > 0 || this.throwStack.size() > 0)
 			return false;
-		for (int i = 0; i < PLAYSTACKSNUM; i++)
+		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++)
 			if (this.playStacks[i] != null) 
 				if (this.playStacks[i].getCardCount() > 0)
 					return false;
 		
 		String suits = "" ;
-		for (int i = 0; i < SUITS; i++) {
+		for (int i = 0; i < SolConst.SUITS; i++) {
 			char currentSuit = this.finalStacks[i].get(0).getSuit();
 			if (suits.indexOf(currentSuit) == - 1)
 				suits += this.finalStacks[i].get(0).getSuit();
 			else 
 				return false;
 			
-			for (int j = 0; j < CARDSINSUITE; j++) {
+			for (int j = 0; j < SolConst.CARDSINSUITE; j++) {
 				if ( ! (this.finalStacks[i].get(j).getFace() == j + 1 && this.finalStacks[i].get(j).getSuit() == currentSuit)) {
 					return false;
 				}
@@ -255,38 +249,10 @@ public class GameBoard {
 		}
 		return true;
 	}
-	
-	//TODO: Remove by 08.03
-	public CardStack findCard(Card card) {
-		for (int i = 0; i < PLAYSTACKSNUM; i++) {
-			for (Card c: this.playStacks[i]) {
-				if (c.equals(card)) {
-					return this.getPlayStack(i);
-				}
-			}
-		}
-		for (int i = 0; i < SUITS; i++) {
-			for (Card c: this.finalStacks[i]) {
-				if (c.equals(card)) {
-					return this.getFinalStack(i);
-				}
-			}
-		}
-		for (Card c: this.throwStack) {
-			if (c.equals(card)) {
-				return this.getThrowStack();
-			}
-		}
-		//TODO: Add throwstack and drawingstack
-		return null;
-	}
-	
 
-	public void moveToFinalStacks(String cardString) {
-		//TODO: Refactor, make prettier ? 
-		Card card = Card.stringToCard(cardString);
-		CardStack fromStack = findCard(card);
-		for (int i = 0; i < SUITS; i++) {
+	public void moveToFinalStacks(Card card, CardStack fromStack) {
+		if (!fromStack.contains(card)) throw new IllegalArgumentException("Card is not in given stack");
+		for (int i = 0; i < SolConst.SUITS; i++) {
 			Card thisStackTopCard = null;
 			try {
 				thisStackTopCard = this.getFinalStack(i).peek();
@@ -305,6 +271,26 @@ public class GameBoard {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns a stack from its stackName
+	 * @param stackName
+	 * @return
+	 */
+	public CardStack getStackbyName(SolConst.Stack stackName) {
+		for (CardStack stack: this.playStacks) {
+			if (stack.getStackName().equals(stackName))
+				return stack;
+		}
+		for (CardStack stack: this.finalStacks)
+			if (stack.getStackName().equals(stackName))
+				return stack;
+		if (this.drawingStack.getStackName().equals(stackName))
+			return this.drawingStack;
+		if (this.throwStack.getStackName().equals(stackName))
+			return this.throwStack;
+		return null;
 	}
 	
 	/*public static void main(String[] args) {
@@ -329,9 +315,9 @@ public class GameBoard {
 		/**
 		 * NOT FOR PRODUCTION; TESTING ONLY
 		 */
-		public GameBoard(CardDeck deck, String cheat) {
+		/*public GameBoard(CardDeck deck, String cheat) {
 			if (cheat == "CHEATER") {
-				for (int i = 0; i < SUITS; i++) {
+				for (int i = 0; i < SolConst.SUITS; i++) {
 					char suit;
 					switch (i) {
 					case 0: {
@@ -350,7 +336,7 @@ public class GameBoard {
 					default:
 						throw new IllegalArgumentException("Unexpected value: " + i);
 					}
-					for (int j = 0; j < CARDSINSUITE; j++) {
+					for (int j = 0; j < SolConst.CARDSINSUITE; j++) {
 						//this.finalStacks[i][j] = new Card(suit, j + 1);
 					}
 					//this.finalStacks[0][0] = new Card('H', 7);
@@ -358,7 +344,7 @@ public class GameBoard {
 			} else {
 				throw new IllegalArgumentException("GameBoard was called with too many arguments.");
 			}
-		}
+		}*/
 }
 
 

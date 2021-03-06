@@ -3,8 +3,7 @@ package solitaire.model;
 public class Card {
 	private char suit;
 	private int value;
-	public enum Stack {DECK, P0, P1, P2, P3, P4, P5, P6, F0, F1, F2, F3, THROWSTACK}
-	private Stack parentStack = Stack.DECK;
+	private SolConst.Stack parentStack = SolConst.Stack.DECK;
 	
 	public Card(char suit, int value) {
 		legalSuit(suit);
@@ -38,11 +37,11 @@ public class Card {
 		return this.value;
 	}
 
-	public Stack getParentStack() {
+	public SolConst.Stack getParentStack() {
 		return parentStack;
 	}
 
-	public void setParentStack(Stack parentStack) {
+	public void setParentStack(SolConst.Stack parentStack) {
 		//TODO: validate
 		this.parentStack = parentStack;
 	}
