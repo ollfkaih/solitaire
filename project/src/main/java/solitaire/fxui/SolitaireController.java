@@ -11,6 +11,7 @@ import java.util.List;
 
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -63,6 +64,9 @@ public class SolitaireController {
 		updateStack();
 	}
 	
+	/**
+	 * Updates the throw- and drawstack (e.g. after dealing a card)
+	 */
 	private void updateDrawStack() {
 		if (!stacks.getThrowStack().isEmpty()) {
 			Card topCard = stacks.getThrowStack().get(stacks.getThrowStack().size() - 1);
@@ -74,11 +78,18 @@ public class SolitaireController {
 			ThrowStack.setOnDragDetected(null);
 			setCustomImage(ThrowStack,'e');
 		}
+		if (stacks.drawStackEmpty()) {
+			setCustomImage(DrawStack,'e');
+		} else {
+			setCustomImage(DrawStack,'b');
+		}
 	}
 	
 	@FXML
 	void handleClickDrawStack() {
-		stacks.deal(3);
+		try {stacks.deal(3);} catch (Exception e) {
+			e.printStackTrace();
+		}
 		updateDrawStack();
 	}
 	
@@ -111,6 +122,14 @@ public class SolitaireController {
 		}
 		return true;		
 	}
+
+	/**
+	 * Sets the image of a label to the appropriate card image
+	 * Returns true if the image was successfully set.
+	 * @param stack
+	 * @param card
+	 * @return 
+	 */
 	private static boolean setCardImage(Label stack, Card card) {
 		Image img;
 		ImageView view;
@@ -126,6 +145,12 @@ public class SolitaireController {
 		}
 	return true;
 	}
+
+	/**
+	 * This function takes a Card parameter and returns the appropriate image file.
+	 * @param card
+	 * @return
+	 */
 	private static Image cardToImg(Card card) {
 		String imgDir = SolConst.IMGDIR;
 		String ext = ".png";
@@ -163,7 +188,12 @@ public class SolitaireController {
 		return null;
 	}
 	
+	/**
+	 * This method redraws play stacks if the number of elements is out of sync with our actual GameBoard,
+	 * sets the correct card in each final stack and updates the drawing and throw stack.
+	 */
 	void updateStack() {
+		//TODO: loop through only neccessary cards and stacks
 		//TODO: REMOVE console printout
 		for (int i = 0; i < 7; i++)
 			System.out.println(stacks.getPlayStack(i));
@@ -205,15 +235,6 @@ public class SolitaireController {
 			}
 		}
 		for (int i = 0; i < SolConst.SUITS; i++) {
-			//TODO: REMOVE
-			/*for (Label cardLabel: f) {
-				PlayStacks.getChildren().remove(cardLabel);
-			}
-			f[i] = new Label(null);
-			if (stacks.getFinalStack(i).empty()) 
-				f[i] = new Label(null);
-			else 
-				f[i] = new Label(stacks.getFinalStack(i).peek().toString());*/
 			try {
 				//Events need to know what stack this card is in 
 				char targetStack = 'f';
@@ -243,20 +264,32 @@ public class SolitaireController {
 		l.setTranslateY(15*j);
 	}
 
+	/**
+	 * This method is called when a dragEvent is detected on certain cards and puts a string on this events
+	 * dragboard, as well as showing the card being dragged
+	 * @param event
+	 * @param l
+	 * @param indexOfStacks
+	 * @param indexOfList
+	 * @param stackName
+	 */
 	private void dragDetected(MouseEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.Stack stackName) {
 		
 		Dragboard db = l.startDragAndDrop(TransferMode.MOVE);
 		draggedLabel = l;
+		//l.setCursor(Cursor.NONE);
 		
 		dragParent = stacks.getStackbyName(stackName);
 		
-		String dbFromStack = "" + ((char) (stackName.toString().charAt(0) + 32)) + indexOfStacks + indexOfList; //Ascii char A -> a has a delta of 32 
+		String dbFromStack = "" + ((char) (stackName.toString().charAt(0))) + indexOfStacks + indexOfList; //Ascii char A -> a has a delta of 32 
 
 	    ClipboardContent content = new ClipboardContent();
 	    content.putString(dbFromStack);
 	    db.setContent(content);
 	    //TODO: Make snapshot render cards on top ?
 	    db.setDragView(l.snapshot(null, null), event.getX(), event.getY());
+		//TODO: Make invisible, but somehow make visible when letting go
+		//draggedLabel.setVisible(false);
 	    event.consume();
 	}
 	
@@ -264,7 +297,7 @@ public class SolitaireController {
 	EventHandler <DragEvent> dragOverEvent = new EventHandler <DragEvent>() {
         public void handle(DragEvent event) {
             event.acceptTransferModes(TransferMode.MOVE);
-                        
+            draggedLabel.setCursor(Cursor.HAND);
             event.consume();
         }
 	};
@@ -273,13 +306,14 @@ public class SolitaireController {
 		Dragboard db = event.getDragboard();
 		if (!db.hasString()) throw new IllegalArgumentException("The dragboard is empty for " + event.getSource());
 		dropLabel = l;
+		draggedLabel.setVisible(true);
 		
 		if (draggedLabel == dropLabel) return;
 		int inStackIndex = 0;
 		char targetStack = ((Label) event.getTarget()).getUserData().toString().charAt(0);
 		char fromType = db.getString().charAt(0);
 		
-		if (fromType != 't') {
+		if (fromType != 'T') {
 			inStackIndex = Integer.parseInt(db.getString().substring(2));
 		} else {
 			inStackIndex = stacks.getThrowStack().size() - 1;

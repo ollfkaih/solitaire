@@ -21,8 +21,7 @@ public class CardDeck extends Stack<Card>{
 	public String toString() {
 		String string = new String();
 		for (int i = 0; i < this.size(); i++) {
-			//System.out.println(deck.get(i));
-			string += this.get(i);
+			string += String.format("Card number %i: %s ", i + 1, this.get(i));
 		}
 		return string;
 	}
@@ -40,13 +39,17 @@ public class CardDeck extends Stack<Card>{
 		return count;	
 	}
 	
+	//TODO: Review removal ? (Execption is thrown by .get() anyways if the index is out of bounds)
 	public Card getCard(int n) {
 		if (n < 0 || n > this.size() - 1) {
 			throw new IllegalArgumentException("The Deck is smaller than the card number requested");
 		}
 		return this.get(n);
 	}
-	
+	/**
+	 * Shuffle perfectly puts the stack in an order where every second card comes from the top half of 
+	 * the deck, and the other cards come from the bottom half (not really a shuffle)
+	 */
 	public void shufflePerfectly() {
 		int deckLength = this.size();
 		
@@ -64,6 +67,9 @@ public class CardDeck extends Stack<Card>{
 		}		
 	}
 
+	/**
+	 * shuffle puts this deck into a pseudo-random order
+	 */
 	public void shuffle() {
 		Random rnd = new Random();
 		int index;
@@ -72,22 +78,22 @@ public class CardDeck extends Stack<Card>{
 
 		for (int i = 0; i < cardCountNow; i++) {
 			index = (rnd.nextInt(SolConst.SUITS*SolConst.CARDSINSUIT));
-			if (tempDeck.get(index) != null) {
-				this.set(i, tempDeck.get(index));
-				tempDeck.set(index, null);
-			} else {
-				while (tempDeck.get(index) == null) {
-					if (index == 51)
-						index = 0;
-					else
-						index++;
-				}
-				this.set(i, tempDeck.get(index));
-				tempDeck.set(index, null);
+			while (tempDeck.get(index) == null) {
+				if (index == 51)
+					index = 0;
+				else
+					index++;
 			}
+			this.set(i, tempDeck.get(index));
+			tempDeck.set(index, null);
 		}
 	}
 	
+	/**
+	 * Deal moves n cards from this stack to another stack (the first method parameter)
+	 * @param stack
+	 * @param n
+	 */
 	public void deal(CardStack stack, int n) {
 		if (n < 0 || n > this.size()) {
 			throw new IllegalArgumentException("The Deck is smaller than the card number requested" + n + " " + this.size());

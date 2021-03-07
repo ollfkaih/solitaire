@@ -1,5 +1,7 @@
 package solitaire.model;
 
+import java.util.Collections;
+
 import solitaire.model.SolConst.*;
 
 public class GameBoard {
@@ -19,16 +21,23 @@ public class GameBoard {
 	public CardStack getThrowStack() {
 		return throwStack;
 	}
+
+	public boolean drawStackEmpty() {
+		if (drawingStack.isEmpty())
+			return true;
+		else 
+			return false;
+	}
 	
 	/**
-	 * This constructor places a CardDeck into a legal starting position by putting one card on every playStacks[],
-	 * then one on the six last, one more on the five last, and so on until only one is placed on the top of the seventh.
-	 * When these 28 cards are dealt, the remaining 24 are put into the playing stack.
+	 * This constructor takes a deck argument and initialises a game by putting 1 card in the first play stack,
+	 * then 2 in the next and so on until the seventh has six. 
+	 * When these 28 cards are dealt, the remaining 24 are put into the drawing stack.
 	 * @param deck 
 	 */
 	public GameBoard(CardDeck deck) {
 		
-		int pos = 0; //Position of the deck to draw from
+		int pos = 0; //Keeps track of how many cards we have drawn
 		for (int i = SolConst.PLAYSTACKSNUM - 1; i >= 0; i--) {
 			playStacks[i] = new CardStack(Stack.valueOf("P" + i));
 			deck.deal(playStacks[i], i + 1);
@@ -181,8 +190,7 @@ public class GameBoard {
 		}
 		fromStack.play(toStack, indexOfCard);
 	}
-	
-		
+			
 	/**
 	 * deal takes the top n (or the remaining cards if less than n) cards from the drawingStack and puts them on the
 	 * throwStack 
@@ -211,10 +219,11 @@ public class GameBoard {
 		if (drawingStack.size() != 0) {
 			throw new IllegalStateException("The drawingStack is not empty, cards should be drawn from it and put on the throwStack first");
 		}
-		//drawingStack.clear
 		if (throwStack.size() > 0) { 
 			drawingStack.addAll(throwStack);
 			throwStack.clear();
+			//Because cards are put "on top" of the throwStack, we want to reverse them back in the drawing stack
+			Collections.reverse(drawingStack);
 		} else if (throwStack.size() == 0) {
 			return; //Both stacks are empty, so nothing to be done.
 		}
