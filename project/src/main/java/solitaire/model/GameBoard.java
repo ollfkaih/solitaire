@@ -9,25 +9,11 @@ public class GameBoard {
 	private CardStack[] playStacks = new CardStack[SolConst.PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
 	private CardStack drawingStack = new CardStack(Stack.DECK); //the stack cards are drawn from, three by three
 	private CardStack throwStack = new CardStack(Stack.THROWSTACK); //The stack of drawn cards next to the drawingStack
-			
-	public CardStack getFinalStack(int i) {
-		return finalStacks[i];
-	}
 	
-	public CardStack getPlayStack(int i) {
-		return playStacks[i];
-	}
-	
-	public CardStack getThrowStack() {
-		return throwStack;
-	}
-
-	public boolean drawStackEmpty() {
-		if (drawingStack.isEmpty())
-			return true;
-		else 
-			return false;
-	}
+	//Track last move
+	private CardStack lastFromStack;
+	private CardStack lastToStack;
+	private int indexOfLastMove;
 	
 	/**
 	 * This constructor takes a deck argument and initialises a game by putting 1 card in the first play stack,
@@ -50,7 +36,26 @@ public class GameBoard {
 		for (int i = 0; i < SolConst.SUITS; i++)
 			finalStacks[i] = new CardStack(Stack.valueOf("F" + i));
 	}
-		
+	
+	public CardStack getFinalStack(int i) {
+		return finalStacks[i];
+	}
+	
+	public CardStack getPlayStack(int i) {
+		return playStacks[i];
+	}
+	
+	public CardStack getThrowStack() {
+		return throwStack;
+	}
+
+	public boolean drawStackEmpty() {
+		if (drawingStack.isEmpty())
+			return true;
+		else 
+			return false;
+	}
+			
 	/**
 	 * isCardFree is used by legalMove to determine if a card can be moved
 	 */
@@ -175,10 +180,48 @@ public class GameBoard {
 		throw new IllegalStateException(String.format("How did we get here? card: %s fromStack: %s toStack: %s", card, fromStack, toStack));
 		//return false;
 	}
+	
+	/**
+	 * saveMove updates variables used to undo 
+	 */
+	private void saveMove(CardStack from, CardStack to, int indexInToStack) {
+		if (indexInToStack < 0 || indexInToStack > to.getCardCount()) 
+			throw new IllegalArgumentException("Index is out of bounds stack " + to);
+		
+		lastFromStack = from;
+		lastToStack = to;
+		indexOfLastMove = indexInToStack;
+	}
+	
+	public void undo() {
+		if (lastFromStack == null || lastToStack == null)
+			throw new IllegalStateException("The last move is not recorded, or no moves have been made");
+		try {
+			int tempIndex = lastFromStack.getCardCount();
+			System.out.println(tempIndex);
+			lastToStack.play(lastFromStack, indexOfLastMove);
+			indexOfLastMove = tempIndex;
+			if (lastFromStack.getStackName().toString().charAt(0) == 'P') {
+				lastFromStack.incrementHiddenCards();
+			}
+			} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("You can only undo the last move");
+			}
+		
+	}
+	
+	public void redo() {
+		if (lastFromStack == null || lastToStack == null)
+			throw new IllegalStateException("The last move is not recorded, or no moves have been made");
+		if (lastFromStack.getStackName().toString().charAt(0) == 'D')
+			this.deal(SolConst.CARDSTODEAL);
+		else
+			moveCard(indexOfLastMove , lastFromStack, lastToStack);
+	}
 
 	/**
-	 * moveCard moves a the card at position indexOfCard from a stack (param #2) to another (param #3)
-	 * given that it is a legal move. It will also move the cards that are on top of the input card in the fromStack, if any.
+	 * moveCard moves the card at position indexOfCard from a stack (param #2) to another (param #3)
+	 * given that it is a legal move. It will also move all the cards that are on top of the input card in the fromStack, if any.
 	 * @param indexOfCard
 	 * @param fromStack
 	 * @param toStack
@@ -189,6 +232,7 @@ public class GameBoard {
 			throw new IllegalArgumentException(String.format("Card: %s in stack %s cannot legally be moved to %s. Input index: %s", card, fromStack, toStack, indexOfCard));
 		}
 		fromStack.play(toStack, indexOfCard);
+		saveMove(fromStack, toStack, toStack.indexOf(card));
 	}
 			
 	/**
@@ -210,6 +254,7 @@ public class GameBoard {
 			drawStart = 0;
 		}
 		drawingStack.play(throwStack, drawStart);
+		saveMove(drawingStack, throwStack, throwStack.size() - n);
 	}
 	
 	/**
@@ -258,7 +303,12 @@ public class GameBoard {
 		}
 		return true;
 	}
-
+	
+	/**
+	 * Loops through all four final stacks to check if a given card can be put there
+	 * @param card
+	 * @param fromStack
+	 */
 	public void moveToFinalStacks(Card card, CardStack fromStack) {
 		if (!fromStack.contains(card)) throw new IllegalArgumentException("Card is not in given stack");
 		for (int i = 0; i < SolConst.SUITS; i++) {
@@ -266,17 +316,20 @@ public class GameBoard {
 			try {
 				thisStackTopCard = this.getFinalStack(i).peek();
 			} catch (Exception IllegalArgumentException) {
-				if (card.getFace() == 1)  
+				if (card.getFace() == 1) {
 					moveCard(fromStack.size() - 1, fromStack, finalStacks[i]);
-				return;
+					return;
+				}
 			}
-			if (thisStackTopCard.getSuit() == card.getSuit()) {
-				try {
-					moveCard(fromStack.size() - 1, fromStack, finalStacks[i]);
-				} catch (IllegalArgumentException e) {
-					//Card may not have been one face value higher, do nothing
-					e.printStackTrace();
-					throw new IllegalArgumentException("Card face is not one more than the card you're attemting to put it on");
+			if (thisStackTopCard != null) {
+				if (thisStackTopCard.getSuit() == card.getSuit()) {
+					try {
+						moveCard(fromStack.size() - 1, fromStack, finalStacks[i]);
+					} catch (IllegalArgumentException e) {
+						//Card may not have been one face value higher, do nothing
+						e.printStackTrace();
+						throw new IllegalArgumentException("Card face is not one more than the card you're attemting to put it on");
+					}
 				}
 			}
 		}
@@ -301,59 +354,6 @@ public class GameBoard {
 			return this.throwStack;
 		return null;
 	}
-	
-	/*public static void main(String[] args) {
-		Card card = new Card('D',2);
-		//System.out.println(Card.Stack.valueOf("P" + 0));
-		CardDeck deck = new CardDeck(13);
-		for (int i = 0; i < 1; i++) {
-			deck.shufflePerfectly();
-		}
-		GameBoard stacks = new GameBoard(deck);
-		for (int i = 0; i < 4; i++)
-			System.out.println(stacks.getFinalStack(i).getStackName());
-			//stacks.dealThree();
-		//stacks.resetDrawStack();
-		//System.out.println(stacks.playStacks[1].get(1) + " " + stacks.playStacks[1] + " " + stacks.finalStacks[0][0]);
-		
-		//stacks.moveCard(stacks.playStacks[1].get(1), stacks.playStacks[1], stacks.finalStacks[0]);
-		//System.out.println(stacks.isSolved());
-		
-	}*/
-	//TODO: REMOVE
-		/**
-		 * NOT FOR PRODUCTION; TESTING ONLY
-		 */
-		/*public GameBoard(CardDeck deck, String cheat) {
-			if (cheat == "CHEATER") {
-				for (int i = 0; i < SolConst.SUITS; i++) {
-					char suit;
-					switch (i) {
-					case 0: {
-						suit = 'S';
-						break;
-					}case 1: {
-						suit = 'D';
-						break;
-					}case 2: {
-						suit = 'H';
-						break;
-					}case 3: {
-						suit = 'C';
-						break;
-					}
-					default:
-						throw new IllegalArgumentException("Unexpected value: " + i);
-					}
-					for (int j = 0; j < SolConst.CARDSINSUITE; j++) {
-						//this.finalStacks[i][j] = new Card(suit, j + 1);
-					}
-					//this.finalStacks[0][0] = new Card('H', 7);
-				}
-			} else {
-				throw new IllegalArgumentException("GameBoard was called with too many arguments.");
-			}
-		}*/
 }
 
 

@@ -8,5 +8,5 @@ public interface SolConst {
 	public int PLAYSTACKSNUM = 7; // Seven play stacks
 	public int SUITS = 4;
 	public String IMGDIR = "img/";
-
+	public int CARDSTODEAL = 3;
 }

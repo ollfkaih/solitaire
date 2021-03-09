@@ -22,6 +22,16 @@ public class CardStack extends Stack<Card> {
 		this.hiddenCards = hiddenCards;
 	}
 	
+	/**
+	 * increments the number of hidden cards in this stack.
+	 */
+	public void incrementHiddenCards() {
+		System.out.println(hiddenCards + " count: " + this.getCardCount());
+		if (hiddenCards >= this.getCardCount() - 1)
+			throw new IllegalStateException("This stack has the maximum number of hidden cards");
+		hiddenCards++;
+	}
+	
 	public int getCardCount() {
 		return this.size();
 	}
@@ -57,21 +67,21 @@ public class CardStack extends Stack<Card> {
 	}
 
 	/**
-	 * play(CardStack, int) will move the n top cards to any other stack (all validation of rules is done in GameBoard)
+	 * play(CardStack, int) will move the top cards including indexOfCard to any other stack (all validation of rules is done in GameBoard)
 	 */
-	 public void play(CardStack stack, int indexofCard) {
-		if (indexofCard < 0 || indexofCard > this.size() - 1) {
+	 public void play(CardStack stack, int indexOfCard) {
+		if (indexOfCard < 0 || indexOfCard > this.size() - 1) {
 			throw new IllegalArgumentException("Cannot play card at index larger than stack size");
 		}
 		
-		while (indexofCard < this.getCardCount()) {
-			Card tempCard = this.get(indexofCard);
-			this.remove(indexofCard);
+		while (indexOfCard < this.getCardCount()) {
+			Card tempCard = this.get(indexOfCard);
+			this.remove(indexOfCard);
 			stack.addCard(tempCard);
 		}
 		
 		//In playStacks, reveal another card if we have removed all visible cards
-		if (indexofCard == hiddenCards && hiddenCards > 0)
+		if (indexOfCard == hiddenCards && hiddenCards > 0)
 			hiddenCards--;
 	}
 
