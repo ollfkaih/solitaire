@@ -236,50 +236,69 @@ public class SolitaireController {
 	}
 	
 	/**
+	 * updateStack
+	 */
+	private void updateStack(List<Label> stackLabels, CardStack stack, AnchorPane LabelParent, int i) {
+		stackLabels.add(new Label(null));
+		LabelParent.getChildren().add(stackLabels.get(0));
+		setCustomImage(stackLabels.get(0), 'e');
+		
+		char targetStack = stack.getStackName().toString().toLowerCase().charAt(0);
+	    stackLabels.get(0).setUserData(targetStack);
+		stackLabels.get(0).setOnDragOver(dragOverEvent);
+    	stackLabels.get(0).setOnDragDone(dragDoneEvent);
+    	//int thisIndexi = i;
+    	stackLabels.get(0).setOnDragDropped((DragEvent event) -> drop(event, stackLabels.get(0), i, 0, stack.getStackName()));
+		
+		for (int labelIndex = 1; labelIndex <= stack.getCardCount(); labelIndex++) {
+			int cardIndex = labelIndex - 1;
+			
+			Label label = new Label(null);
+			stackLabels.add(label);
+		    stackLabels.get(labelIndex).setUserData(targetStack);
+	    	
+		    int labelj = labelIndex;
+			//Hidden cards should not be draggable or doubleclickable
+			if (! board.getPlayStack(i).isHidden(cardIndex)) {
+				Card card = board.getPlayStack(i).get(cardIndex);
+				setCardImage(stackLabels.get(labelIndex), card);
+
+				stackLabels.get(labelIndex).setOnDragDetected((MouseEvent event) -> dragDetected(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
+	    		stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> doubleClickCard(event, stack.get(cardIndex), stack));
+			} else {
+				setCustomImage(stackLabels.get(labelIndex),'b');
+			}
+	    	stackLabels.get(labelIndex).setOnDragOver(dragOverEvent);
+	    	stackLabels.get(labelIndex).setOnDragDone(dragDoneEvent);
+	    	//All cards should be droptargets; if you drop a card on a hidden card, the drop() method attempts to put it at the top of this stack
+	    	stackLabels.get(labelIndex).setOnDragDropped((DragEvent event) -> drop(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
+	    	LabelParent.getChildren().add(stackLabels.get(labelIndex));
+		}
+		
+		for (int labelIndex = stack.getCardCount() + 1; labelIndex < stackLabels.size(); ) {
+			LabelParent.getChildren().remove(stackLabels.get(labelIndex));
+			stackLabels.remove(labelIndex);
+		}
+		
+	}
+	
+	/**
 	 * Updates all playstacks
 	 */
 	void updatePlayStacks() {
+		
+		AnchorPane LabelParent = PlayStacks;
+		
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
 			//if (p[i].size() != board.getPlayStack(i).getCardCount() + 1) {
 			for (Label cardLabel: p[i]) {
 				PlayStacks.getChildren().remove(cardLabel);
 			}
-			char targetStack = 'p';
 			
-			p[i].add(new Label(null));
-			PlayStacks.getChildren().add(p[i].get(0));
-			setCustomImage(p[i].get(0), 'e');
-
-		    p[i].get(0).setUserData(targetStack);
-			p[i].get(0).setOnDragOver(dragOverEvent);
-	    	p[i].get(0).setOnDragDone(dragDoneEvent);
-	    	int thisIndexi = i;
-	    	p[i].get(0).setOnDragDropped((DragEvent event) -> drop(event, p[thisIndexi].get(0), thisIndexi, 0, board.getPlayStack(thisIndexi).getStackName()));
-			
-			for (int labelIndex = 1; labelIndex <= board.getPlayStack(i).getCardCount(); labelIndex++) {
-				int cardIndex = labelIndex - 1;
-				Label label = new Label(null);
-				p[i].add(label);
-			    p[i].get(labelIndex).setUserData(targetStack);
-		    	
-			    int labelj = labelIndex;
-				int thisIndexj = cardIndex;
-				//Hidden cards should not be draggable or doubleclickable
-				if (! board.getPlayStack(i).isHidden(cardIndex)) {
-					Card card = board.getPlayStack(i).get(cardIndex);
-					setCardImage(p[i].get(labelIndex), card);
-
-					p[i].get(labelIndex).setOnDragDetected((MouseEvent event) -> dragDetected(event, p[thisIndexi].get(labelj), thisIndexi, thisIndexj, board.getPlayStack(thisIndexi).getStackName()));
-		    		p[i].get(labelIndex).setOnMouseClicked((MouseEvent event) -> doubleClickCard(event, board.getPlayStack(thisIndexi).get(thisIndexj), board.getPlayStack(thisIndexi)));
-				} else {
-					setCustomImage(p[i].get(labelIndex),'b');
-				}
-		    	p[i].get(labelIndex).setOnDragOver(dragOverEvent);
-		    	p[i].get(labelIndex).setOnDragDone(dragDoneEvent);
-		    	//All cards should be droptargets; if you drop a card on a hidden card, the drop() method attempts to put it at the top of this stack
-		    	p[i].get(labelIndex).setOnDragDropped((DragEvent event) -> drop(event, p[thisIndexi].get(labelj), thisIndexi, thisIndexj, board.getPlayStack(thisIndexi).getStackName()));
-		    	PlayStacks.getChildren().add(p[i].get(labelIndex));
-			}
+			List<Label> stackLabels = p[i];
+			CardStack stack = board.getPlayStack(i);
+						
+			updateStack(stackLabels, stack, LabelParent, i);
 			pTranslate(p[i], i);
 		}
 	}
@@ -365,7 +384,7 @@ public class SolitaireController {
 		
 		dragParent = board.getStackbyName(stackName);
 		
-		String dbFromStack = "" + ((char) (stackName.toString().charAt(0))) + indexOfStacks + indexOfList; //Ascii char A -> a has a delta of 32 
+		String dbFromStack = "" + ((char) (stackName.toString().charAt(0))) + indexOfStacks + indexOfList;
 
 	    ClipboardContent content = new ClipboardContent();
 	    content.putString(dbFromStack);
