@@ -14,6 +14,8 @@ public class SolitaireApp extends Application {
     	stage.setTitle("Solitaire"); //fallback
         stage.setScene(new Scene(parent));
         stage.show();
+        //TODO: Change if stacks reposition code is added
+        stage.setResizable(false);
     }
 
     public static void main(String[] args) {

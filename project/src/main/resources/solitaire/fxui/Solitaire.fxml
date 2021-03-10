@@ -30,10 +30,10 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <AnchorPane minWidth="-Infinity" prefHeight="188.0" prefWidth="194.0">
+                  <AnchorPane fx:id="DeckStacks" minWidth="-Infinity" prefHeight="188.0" prefWidth="194.0">
                      <children>
-                        <Label fx:id="ThrowStack" alignment="CENTER" contentDisplay="CENTER" layoutX="105.0" prefHeight="105.0" prefWidth="75.0" text="Label" />
-                        <Label fx:id="DrawStack" alignment="CENTER" contentDisplay="CENTER" layoutX="20.0" onMouseClicked="#clickDrawStack" prefHeight="105.0" prefWidth="75.0" text="Label" wrapText="true" />
+                        <Label fx:id="DrawStack" alignment="CENTER" contentDisplay="CENTER" layoutX="20.0" onMouseClicked="#clickDrawStack" prefHeight="105.0" prefWidth="75.0" text="" wrapText="true" />
+                        <AnchorPane fx:id="DeckStacks" minWidth="-Infinity" layoutX="105" > </AnchorPane>
                      </children>
                   </AnchorPane>
                   <AnchorPane fx:id="FinalStacks" maxWidth="-Infinity" prefHeight="121.0" prefWidth="475.0" GridPane.columnIndex="1" />
