@@ -6,13 +6,13 @@ import java.util.Stack;
 public class CardStack extends Stack<Card> {
 	
 	private int hiddenCards;
-	private SolConst.Stack stackName;
+	private SolConst.SType stackName;
 	
-	public SolConst.Stack getStackName() {
+	public SolConst.SType getStackName() {
 		return stackName;
 	}
 
-	public CardStack(SolConst.Stack stackName) {
+	public CardStack(SolConst.SType stackName) {
 		this.stackName = stackName;
 	}
 	

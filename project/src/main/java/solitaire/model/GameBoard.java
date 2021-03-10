@@ -7,8 +7,8 @@ import solitaire.model.SolConst.*;
 public class GameBoard {
 	private CardStack[] finalStacks = new CardStack[SolConst.SUITS]; //four final stacks 
 	private CardStack[] playStacks = new CardStack[SolConst.PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
-	private CardStack drawingStack = new CardStack(Stack.DECK); //the stack cards are drawn from, three by three
-	private CardStack throwStack = new CardStack(Stack.THROWSTACK); //The stack of drawn cards next to the drawingStack
+	private CardStack drawingStack = new CardStack(SType.DECK); //the stack cards are drawn from, three by three
+	private CardStack throwStack = new CardStack(SType.THROWSTACK); //The stack of drawn cards next to the drawingStack
 	
 	//Track last move
 	private CardStack lastFromStack;
@@ -25,7 +25,7 @@ public class GameBoard {
 		
 		int pos = 0; //Keeps track of how many cards we have drawn
 		for (int i = SolConst.PLAYSTACKSNUM - 1; i >= 0; i--) {
-			playStacks[i] = new CardStack(Stack.valueOf("P" + i));
+			playStacks[i] = new CardStack(SType.valueOf("P" + i));
 			deck.deal(playStacks[i], i + 1);
 			pos += i + 1;
 			playStacks[i].setHiddenCards(i);
@@ -34,7 +34,7 @@ public class GameBoard {
 		deck.deal(drawingStack, SolConst.CARDSINSUIT * SolConst.SUITS - pos);
 		
 		for (int i = 0; i < SolConst.SUITS; i++)
-			finalStacks[i] = new CardStack(Stack.valueOf("F" + i));
+			finalStacks[i] = new CardStack(SType.valueOf("F" + i));
 	}
 	
 	public CardStack getFinalStack(int i) {
@@ -198,7 +198,6 @@ public class GameBoard {
 			throw new IllegalStateException("The last move is not recorded, or no moves have been made");
 		try {
 			int tempIndex = lastFromStack.getCardCount();
-			System.out.println(tempIndex);
 			lastToStack.play(lastFromStack, indexOfLastMove);
 			indexOfLastMove = tempIndex;
 			if (lastFromStack.getStackName().toString().charAt(0) == 'P') {
@@ -340,7 +339,7 @@ public class GameBoard {
 	 * @param stackName
 	 * @return
 	 */
-	public CardStack getStackbyName(SolConst.Stack stackName) {
+	public CardStack getStackbyName(SolConst.SType stackName) {
 		for (CardStack stack: this.playStacks) {
 			if (stack.getStackName().equals(stackName))
 				return stack;

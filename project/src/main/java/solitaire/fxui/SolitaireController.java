@@ -21,7 +21,6 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
@@ -266,7 +265,7 @@ public class SolitaireController {
 			    int labelj = labelIndex;
 				int thisIndexj = cardIndex;
 				//Hidden cards should not be draggable or doubleclickable
-				if ( ! board.getPlayStack(i).isHidden(cardIndex)) {
+				if (! board.getPlayStack(i).isHidden(cardIndex)) {
 					Card card = board.getPlayStack(i).get(cardIndex);
 					setCardImage(p[i].get(labelIndex), card);
 
@@ -327,7 +326,7 @@ public class SolitaireController {
 	}
 	
 	private void fTranslate(Label l, int i) {
-		l.setTranslateX(85*i); 
+		l.setTranslateX(105 + 85*i); 
 		//l.setTranslateY(30);
 	}
 	
@@ -358,7 +357,7 @@ public class SolitaireController {
 	 * @param indexOfList
 	 * @param stackName
 	 */
-	private void dragDetected(MouseEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.Stack stackName) {
+	private void dragDetected(MouseEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.SType stackName) {
 		
 		Dragboard db = l.startDragAndDrop(TransferMode.MOVE);
 		draggedLabel = l;
@@ -395,7 +394,7 @@ public class SolitaireController {
 	        }
 		};
 		
-	private void drop(DragEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.Stack stackName) {
+	private void drop(DragEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.SType stackName) {
 		Dragboard db = event.getDragboard();
 		if (!db.hasString()) throw new IllegalArgumentException("The dragboard is empty for " + event.getSource());
 		dropLabel = l;

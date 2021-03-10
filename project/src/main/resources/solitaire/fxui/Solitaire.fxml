@@ -36,7 +36,7 @@
                         <Label fx:id="DrawStack" alignment="CENTER" contentDisplay="CENTER" layoutX="20.0" onMouseClicked="#clickDrawStack" prefHeight="105.0" prefWidth="75.0" text="Label" wrapText="true" />
                      </children>
                   </AnchorPane>
-                  <AnchorPane fx:id="FinalStacks" maxWidth="-Infinity" prefHeight="146.0" prefWidth="387.0" translateX="105.0" GridPane.columnIndex="1" GridPane.hgrow="NEVER" />
+                  <AnchorPane fx:id="FinalStacks" maxWidth="-Infinity" prefHeight="121.0" prefWidth="475.0" GridPane.columnIndex="1" />
                </children>
             </GridPane>
             <AnchorPane fx:id="PlayStacks" prefHeight="310.0" prefWidth="640.0" GridPane.rowIndex="1" />
@@ -46,7 +46,7 @@
         <menus>
           <Menu mnemonicParsing="false" text="_Game">
             <items>
-              <MenuItem fx:id="newGame" mnemonicParsing="false" onAction="#startNewGame" text="New game	" />
+              <MenuItem fx:id="newGame" mnemonicParsing="false" onAction="#startNewGame" text="New game " />
               <SeparatorMenuItem mnemonicParsing="false" />
               <MenuItem fx:id="Undo" mnemonicParsing="false" onAction="#undo" text="Undo" />
               <SeparatorMenuItem mnemonicParsing="false" />
