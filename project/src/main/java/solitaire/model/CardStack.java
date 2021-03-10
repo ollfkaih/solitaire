@@ -74,6 +74,9 @@ public class CardStack extends Stack<Card> {
 			throw new IllegalArgumentException("Cannot play card at index larger than stack size");
 		}
 		
+		if (this == stack)
+			throw new IllegalArgumentException("Cannot move a card to itself");
+		
 		while (indexOfCard < this.getCardCount()) {
 			Card tempCard = this.get(indexOfCard);
 			this.remove(indexOfCard);

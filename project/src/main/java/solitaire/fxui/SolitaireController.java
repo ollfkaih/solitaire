@@ -39,8 +39,9 @@ public class SolitaireController {
 	@FXML private MenuItem Undo;
 	
 	@SuppressWarnings("unchecked")
-	List<Label>[] p = (List <Label>[]) new ArrayList[SolConst.PLAYSTACKSNUM];
-	Label[] f = new Label[SolConst.SUITS];
+	List<Label>[] p = (List<Label>[]) new ArrayList[SolConst.PLAYSTACKSNUM];
+	@SuppressWarnings("unchecked")
+	List<Label>[] f = (List<Label>[]) new ArrayList[SolConst.SUITS];
 	private Label draggedLabel;
 	private Label dropLabel;
 	private CardStack dragParent;
@@ -68,8 +69,8 @@ public class SolitaireController {
 		Undo.setDisable(true);
 		
 		for (int i = 0; i < SolConst.SUITS; i++) {
-			f[i] = new Label(null);
-			FinalStacks.getChildren().add(f[i]);
+			f[i] = new ArrayList<>();
+			//FinalStacks.getChildren().add(f[i]);
 		}
 		initpStacks = true;
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
@@ -252,15 +253,15 @@ public class SolitaireController {
 		
 		for (int labelIndex = 1; labelIndex <= stack.getCardCount(); labelIndex++) {
 			int cardIndex = labelIndex - 1;
-			
+
 			Label label = new Label(null);
 			stackLabels.add(label);
 		    stackLabels.get(labelIndex).setUserData(targetStack);
 	    	
 		    int labelj = labelIndex;
 			//Hidden cards should not be draggable or doubleclickable
-			if (! board.getPlayStack(i).isHidden(cardIndex)) {
-				Card card = board.getPlayStack(i).get(cardIndex);
+			if (! stack.isHidden(cardIndex)) {
+				Card card = stack.get(cardIndex);
 				setCardImage(stackLabels.get(labelIndex), card);
 
 				stackLabels.get(labelIndex).setOnDragDetected((MouseEvent event) -> dragDetected(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
@@ -288,18 +289,38 @@ public class SolitaireController {
 	void updatePlayStacks() {
 		
 		AnchorPane LabelParent = PlayStacks;
+		LabelParent.getChildren().clear();
 		
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
 			//if (p[i].size() != board.getPlayStack(i).getCardCount() + 1) {
-			for (Label cardLabel: p[i]) {
-				PlayStacks.getChildren().remove(cardLabel);
-			}
+			/*for (Label cardLabel: p[i]) {
+				LabelParent.getChildren().remove(cardLabel);
+			}*/
 			
 			List<Label> stackLabels = p[i];
 			CardStack stack = board.getPlayStack(i);
 						
 			updateStack(stackLabels, stack, LabelParent, i);
 			pTranslate(p[i], i);
+		}
+	}
+	/**
+	 * Updates all finalStacks
+	 */
+	private void updateFinalStacks() {
+		AnchorPane LabelParent = FinalStacks;
+		LabelParent.getChildren().clear();
+		
+		for (int i = 0; i < SolConst.SUITS; i++) {
+			/*for (Label cardLabel: f[i]) {
+				LabelParent.getChildren().remove(cardLabel);
+			}*/
+			
+			List<Label> stackLabels = f[i];
+			CardStack stack = board.getFinalStack(i);
+						
+			updateStack(stackLabels, stack, LabelParent, i);
+			fTranslate(f[i], i);
 		}
 	}
 	
@@ -314,29 +335,8 @@ public class SolitaireController {
 			System.out.println(board.getPlayStack(i));
 		
 		try {updatePlayStacks();} catch (Exception e) {e.printStackTrace();}
-
-		for (int i = 0; i < SolConst.SUITS; i++) {
-			try {
-				//Events need to know what stack this card is in 
-				char targetStack = 'f';
-			    f[i].setUserData(targetStack);
-				
-			    int thisIndexi = i;
-			    int thisIndexj = board.getFinalStack(i).getCardCount() - 1;
-			    f[i].setOnDragDetected((MouseEvent event) -> dragDetected(event, f[thisIndexi], thisIndexi, thisIndexj, board.getFinalStack(thisIndexi).getStackName()));
-
-				f[i].setOnDragOver(dragOverEvent);	
-				f[i].setOnDragDone(dragDoneEvent);
-				f[i].setOnDragDropped((DragEvent event) -> drop(event, f[thisIndexi], thisIndexi, thisIndexj, board.getPlayStack(thisIndexi).getStackName()));
-				
-				fTranslate(f[i], i);
-				Card topCard = board.getFinalStack(i).peek();
-				setCardImage(f[i], topCard);
-			} catch (Exception IllegalArgumentException) {
-				setCustomImage(f[i],'e');
-			}
-		}
-		updateDrawStack();
+		try {updateFinalStacks();} catch (Exception e) {e.printStackTrace();}
+		try {updateDrawStack();} catch (Exception e) {e.printStackTrace();}
 		
 		if (board.isSolved()) {
 			ThrowStack.setText("SOLVED");
@@ -344,8 +344,9 @@ public class SolitaireController {
 		
 	}
 	
-	private void fTranslate(Label l, int i) {
-		l.setTranslateX(105 + 85*i); 
+	private void fTranslate(List<Label> l, int i) {
+		for (Label label : l)
+			label.setTranslateX(105 + 85*i); 
 		//l.setTranslateY(30);
 	}
 	
