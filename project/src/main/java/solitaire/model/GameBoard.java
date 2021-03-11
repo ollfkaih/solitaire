@@ -55,6 +55,16 @@ public class GameBoard {
 		else 
 			return false;
 	}
+
+	@Override
+	public String toString() {
+		String game = drawingStack + "\n" + throwStack + "\n";
+		for (CardStack s: playStacks)
+			game += s + "\n";
+		for (CardStack s: finalStacks)
+			game += s + "\n";
+		return game;
+	}
 			
 	/**
 	 * isCardFree is used by legalMove to determine if a card can be moved

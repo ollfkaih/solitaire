@@ -19,8 +19,13 @@ public class CardContainerIterator implements Iterator<Card> {
 	public Card next() {
         if (!hasNext())
             return null;
-		
-        Card returnCard = handOfCards.get(currentIndex);
+		Card returnCard;
+        
+		try {
+		returnCard = handOfCards.get(currentIndex);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
         currentIndex++;
 		return returnCard;
 	}

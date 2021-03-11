@@ -226,11 +226,7 @@ public class SolitaireController {
 		try {updateDrawStack();} catch (Exception e) {e.printStackTrace();}
 		try {updateThrowStack();} catch (Exception e) {e.printStackTrace();} 
 		
-		/*for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++)
-			System.out.println(board.getPlayStack(i));*/	
-		for (int i = 0; i < SolConst.SUITS; i++)
-			System.out.println(board.getFinalStack(i));
-		System.out.println(board.getThrowStack());
+		System.out.println(board.toString());
 			
 	}
 	

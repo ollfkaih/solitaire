@@ -107,8 +107,11 @@ public class CardStack extends Stack<Card> implements CardContainer {
 	public String toString() {
 		String concat = this.getStackName().toString();
 		Iterator<Card> iterator =  this.iterator();
+		int tempHide = this.hiddenCards;
+		this.hiddenCards = 0;
 		while (iterator.hasNext())
 			concat +=  "," + iterator.next();
+		this.hiddenCards = tempHide;
 		return concat;
 	}
 }

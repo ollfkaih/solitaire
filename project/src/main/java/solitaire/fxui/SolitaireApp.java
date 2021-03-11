@@ -13,9 +13,9 @@ public class SolitaireApp extends Application {
     	Parent parent = FXMLLoader.load(getClass().getResource("Solitaire.fxml"));
     	stage.setTitle("Solitaire"); //fallback
         stage.setScene(new Scene(parent));
-        stage.show();
         //TODO: Change if stacks reposition code is added
         stage.setResizable(false);
+        stage.show();
     }
 
     public static void main(String[] args) {
