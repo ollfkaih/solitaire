@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Platform;
+import javafx.beans.NamedArg;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
@@ -126,17 +127,6 @@ public class SolitaireController {
 	 * Updates the throw- and drawstack (e.g. after dealing a card)
 	 */
 	private void updateDrawStack() {
-		/*if (!board.getThrowStack().isEmpty()) {
-			Card topCard = board.getThrowStack().get(board.getThrowStack().size() - 1);
-			ThrowStack.setOnMouseClicked((MouseEvent event) -> doubleClickCard(event, board.getThrowStack().peek(), board.getThrowStack()));
-			ThrowStack.setOnDragDetected((MouseEvent event) -> dragDetected(event, ThrowStack, -1, -1, board.getThrowStack().getStackName()));
-			ThrowStack.setOnDragDone(dragDoneEvent);
-			setCardImage(ThrowStack, topCard);
-		} else {
-			ThrowStack.setOnMouseClicked(null);
-			ThrowStack.setOnDragDetected(null);
-			setCustomImage(ThrowStack,'e');
-		}*/
 		if (board.drawStackEmpty()) {
 			setCustomImage(DrawStack,'e');
 		} else {
@@ -148,15 +138,8 @@ public class SolitaireController {
 	 * updateStack
 	 */
 	private void updateStack(List<Label> stackLabels, CardStack stack, AnchorPane LabelParent, int i) {
-		try {
-			stackLabels.set(0, new Label(null));
-			LabelParent.getChildren().set(0,stackLabels.get(0));
-		} catch (IndexOutOfBoundsException e) {
-			stackLabels.add(new Label(null));
-			LabelParent.getChildren().add(stackLabels.get(0));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		stackLabels.add(new Label(null));
+		LabelParent.getChildren().add(stackLabels.get(0));
 		setCustomImage(stackLabels.get(0), 'e');
 		
 		char targetStack = stack.getStackName().toString().toLowerCase().charAt(0);
@@ -168,15 +151,9 @@ public class SolitaireController {
 		
 		for (int labelIndex = 1; labelIndex <= stack.getCardCount(); labelIndex++) {
 			int cardIndex = labelIndex - 1;
-
+			
 			Label label = new Label(null);
-			try {
-				stackLabels.set(labelIndex, label);
-			} catch (IndexOutOfBoundsException e) {
-				stackLabels.add(label);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			stackLabels.add(label);
 		    stackLabels.get(labelIndex).setUserData(targetStack);
 	    	
 		    int labelj = labelIndex;
@@ -184,16 +161,21 @@ public class SolitaireController {
 			if (! stack.isHidden(cardIndex)) {
 				Card card = stack.get(cardIndex);
 				setCardImage(stackLabels.get(labelIndex), card);
-
-				stackLabels.get(labelIndex).setOnDragDetected((MouseEvent event) -> dragDetected(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
-	    		stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> doubleClickCard(event, stack.get(cardIndex), stack));
+				
+				if (stack.getStackName().toString().charAt(0) != 'T' || stack.indexOf(card) == stack.getCardCount() - 1) {
+					stackLabels.get(labelIndex).setOnDragDetected((MouseEvent event) -> dragDetected(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
+	    			stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> doubleClickCard(event, stack.get(cardIndex), stack));
+				}
 			} else {
 				setCustomImage(stackLabels.get(labelIndex),'b');
 			}
-	    	stackLabels.get(labelIndex).setOnDragOver(dragOverEvent);
 	    	stackLabels.get(labelIndex).setOnDragDone(dragDoneEvent);
-	    	//All cards should be droptargets; if you drop a card on a hidden card, the drop() method attempts to put it at the top of this stack
-	    	stackLabels.get(labelIndex).setOnDragDropped((DragEvent event) -> drop(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
+
+			if (stack.getStackName().toString().charAt(0) != 'T') {
+				stackLabels.get(labelIndex).setOnDragOver(dragOverEvent);
+				//All cards should be droptargets; if you drop a card on a hidden card, the drop() method attempts to put it at the top of this stack
+				stackLabels.get(labelIndex).setOnDragDropped((DragEvent event) -> drop(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
+			}
 	    	LabelParent.getChildren().add(stackLabels.get(labelIndex));
 		}
 		
@@ -203,12 +185,12 @@ public class SolitaireController {
 		}
 		
 	}
-	
+
 	/**
 	 * Updates all playstacks
 	 */
 	void updatePlayStacks() {
-				
+		PlayStacks.getChildren().clear();
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
 			updateStack(p[i], board.getPlayStack(i), PlayStacks, i);
 			pTranslate(p[i], i);
@@ -218,6 +200,7 @@ public class SolitaireController {
 	 * Updates all finalStacks
 	 */
 	private void updateFinalStacks() {
+		FinalStacks.getChildren().clear();
 		for (int i = 0; i < SolConst.SUITS; i++) {
 			updateStack(f[i], board.getFinalStack(i), FinalStacks, i);
 			fTranslate(f[i], i);
@@ -225,8 +208,10 @@ public class SolitaireController {
 	}
 
 	private void updateThrowStack() {
+		DeckStacks.getChildren().clear();
 		updateStack(t, board.getThrowStack(), DeckStacks, -1);
-		tTranslate();
+		//TODO: Use
+		//tTranslate();
 	}
 	
 	/**
@@ -235,15 +220,18 @@ public class SolitaireController {
 	 */
 	void updateBoard() {
 		//TODO: loop through only neccessary cards and stacks
-		//TODO: REMOVE console printout
-		for (int i = 0; i < 7; i++)
-			System.out.println(board.getPlayStack(i));
 		
 		try {updatePlayStacks();} catch (Exception e) {e.printStackTrace();}
 		try {updateFinalStacks();} catch (Exception e) {e.printStackTrace();}
 		try {updateDrawStack();} catch (Exception e) {e.printStackTrace();}
 		try {updateThrowStack();} catch (Exception e) {e.printStackTrace();} 
 		
+		/*for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++)
+			System.out.println(board.getPlayStack(i));*/	
+		for (int i = 0; i < SolConst.SUITS; i++)
+			System.out.println(board.getFinalStack(i));
+		System.out.println(board.getThrowStack());
+			
 	}
 	
 	private void fTranslate(List<Label> l, int i) {
@@ -252,14 +240,14 @@ public class SolitaireController {
 		//l.setTranslateY(30);
 	}
 	
-	private void tTranslate() {
+	//private void tTranslate() {
 		/*for (Label label: t)
 			label.setTranslateX(105); */
-		int tsize = t.size();
-		//TODO: Make sure only the top one is draggable
-		//for (int i = tsize - 3; i < tsize; i++)
-		//	t.get(i).setTranslateX(12*(i + 3 - tsize));
-	}
+		//TODO: fix ?
+		/*int tsize = t.size();
+		for (int i = tsize - 2; i < tsize && i >= 0; i++)
+			t.get(i).setTranslateX(12*(i + 3 - tsize));*/
+	//}
 	
 	private void pTranslate(List<Label> l, int i) {
 		l.get(0).setTranslateX(20 + 85*i);

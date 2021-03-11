@@ -1,9 +1,12 @@
 package solitaire.model;
 
+import java.util.Iterator;
 import java.util.Stack;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("serial")
-public class CardStack extends Stack<Card> {
+public class CardStack extends Stack<Card> implements CardContainer {
 	
 	private int hiddenCards;
 	private SolConst.SType stackName;
@@ -86,6 +89,26 @@ public class CardStack extends Stack<Card> {
 		//In playStacks, reveal another card if we have removed all visible cards
 		if (indexOfCard == hiddenCards && hiddenCards > 0)
 			hiddenCards--;
+	 }
+	@Override
+	public Iterator<Card> iterator() {
+		return new CardContainerIterator(this);
 	}
-
+	
+	boolean hasCard(Predicate<Card> predicate) {
+		return this.stream().anyMatch(predicate);
+	}
+		
+	int getCardCount(Predicate<Card> predicate) {
+		return this.stream().filter(predicate).collect(Collectors.toList()).size();
+	}
+		
+	@Override
+	public String toString() {
+		String concat = this.getStackName().toString();
+		Iterator<Card> iterator =  this.iterator();
+		while (iterator.hasNext())
+			concat +=  "," + iterator.next();
+		return concat;
+	}
 }

@@ -1,10 +1,14 @@
 package solitaire.model;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Stack;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("serial")
-public class CardDeck extends Stack<Card>{
+public class CardDeck extends Stack<Card> implements CardContainer{
 	
 	public CardDeck(int n) {
 		if (n > 13)
@@ -103,4 +107,22 @@ public class CardDeck extends Stack<Card>{
 			this.remove(this.size() - 1);
 		}
 	}
+	
+	@Override
+	public Iterator<Card> iterator() {
+		return new CardContainerIterator(this);
+	}
+	
+	boolean hasCard(Predicate<Card> predicate) {
+		return this.stream().anyMatch(predicate);
+	}
+	
+	int getCardCount(Predicate<Card> predicate) {
+		return this.stream().filter(predicate).collect(Collectors.toList()).size();
+	}
+	
+	List<Card> getCards(Predicate<Card> predicate) {
+		return this.stream().filter(predicate).collect(Collectors.toList());
+	}
+	
 }

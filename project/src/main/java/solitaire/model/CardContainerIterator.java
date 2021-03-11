@@ -20,7 +20,7 @@ public class CardContainerIterator implements Iterator<Card> {
         if (!hasNext())
             return null;
 		
-        Card returnCard = handOfCards.getCard(currentIndex);
+        Card returnCard = handOfCards.get(currentIndex);
         currentIndex++;
 		return returnCard;
 	}
