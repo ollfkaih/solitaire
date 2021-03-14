@@ -7,11 +7,12 @@ import solitaire.model.SolConst.*;
 public class GameBoard {
 	private CardStack[] finalStacks = new CardStack[SolConst.SUITS]; //four final stacks 
 	private CardStack[] playStacks = new CardStack[SolConst.PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
-	private CardStack drawingStack = new CardStack(SType.DECK); //the stack cards are drawn from, three by three
-	private CardStack throwStack = new CardStack(SType.THROWSTACK); //The stack of drawn cards next to the drawingStack
+	private CardDeck deck;// = new CardStack(SType.DECK); //the stack cards are drawn from, three by three
+	private CardStack throwStack; //The stack of drawn cards next to the drawingStack
+	//private Map <SolConst.SType, CardContainer> stacks = new HashMap<>(); 
 	
 	//Track last move
-	private CardStack lastFromStack;
+	private CardContainer lastFromStack;
 	private CardStack lastToStack;
 	private int indexOfLastMove;
 	
@@ -23,18 +24,23 @@ public class GameBoard {
 	 */
 	public GameBoard(CardDeck deck) {
 		
-		int pos = 0; //Keeps track of how many cards we have drawn
+		throwStack = new CardStack(SType.THROWSTACK);
+//		stacks.put(SType.THROWSTACK, throwStack);
+		
 		for (int i = SolConst.PLAYSTACKSNUM - 1; i >= 0; i--) {
 			playStacks[i] = new CardStack(SType.valueOf("P" + i));
 			deck.deal(playStacks[i], i + 1);
-			pos += i + 1;
 			playStacks[i].setHiddenCards(i);
+//			stacks.put(SType.valueOf("P" + i), playStacks[i]);			
 		}
 		
-		deck.deal(drawingStack, SolConst.CARDSINSUIT * SolConst.SUITS - pos);
+		this.deck = deck;
+//		stacks.put(SType.DECK, deck);
 		
-		for (int i = 0; i < SolConst.SUITS; i++)
+		for (int i = 0; i < SolConst.SUITS; i++) {
 			finalStacks[i] = new CardStack(SType.valueOf("F" + i));
+//			stacks.put(SType.valueOf("F" + i), finalStacks[i]);
+		}
 	}
 	
 	public CardStack getFinalStack(int i) {
@@ -50,7 +56,7 @@ public class GameBoard {
 	}
 
 	public boolean drawStackEmpty() {
-		if (drawingStack.isEmpty())
+		if (deck.isEmpty())
 			return true;
 		else 
 			return false;
@@ -58,7 +64,7 @@ public class GameBoard {
 
 	@Override
 	public String toString() {
-		String game = drawingStack + "\n" + throwStack + "\n";
+		String game = deck + "\n" + throwStack + "\n";
 		for (CardStack s: playStacks)
 			game += s + "\n";
 		for (CardStack s: finalStacks)
@@ -72,36 +78,36 @@ public class GameBoard {
 	private boolean isCardFree(Card card, CardStack fromStack) {
 		if (!fromStack.contains(card)) 
 			throw new IllegalArgumentException("The card " + card + " is not a part of " + fromStack.toString());
-		if (drawingStack.contains(card)) {
-			System.out.println(drawingStack);
+		if (deck.contains(card)) {
+			System.out.println(deck);
 			return false;
-		} else if (fromStack.get(fromStack.getCardCount() - 1).equals(card)) {
+		} else if (fromStack.getCard(fromStack.getCardCount() - 1).equals(card)) {
 			return true;
 		} else {
 			for (int i = fromStack.indexOf(card); i < fromStack.getCardCount() - 1; i++) {
 				//Check that the card on top is a different color and face value one less
 				//If the cards follow the rules, each switch ends with a break statement, and if we never hit a condition not allowed, we "avoid" 
 				//the return statements until the for loop has completed and we end up at the return true statement
-				switch (fromStack.get(i).getSuit()) {
+				switch (fromStack.getCard(i).getSuit()) {
 				case 'D', 'H' -> {
-					switch (fromStack.get(i + 1).getSuit()) {
+					switch (fromStack.getCard(i + 1).getSuit()) {
 					case 'D', 'H' -> {
 						return false;
 					} 
 					case 'S', 'C' -> {
-						if (fromStack.get(i + 1).getFace() != fromStack.get(i).getFace() - 1)
+						if (fromStack.getCard(i + 1).getFace() != fromStack.getCard(i).getFace() - 1)
 							return false;
 						else
 							break;
 					}
 					}
 				} case 'S', 'C' -> {
-					switch (fromStack.get(i + 1).getSuit()) {
+					switch (fromStack.getCard(i + 1).getSuit()) {
 					case 'S', 'C' -> {
 						return false;
 					} 
 					case 'D', 'H' -> {
-						if (fromStack.get(i + 1).getFace() != fromStack.get(i).getFace() - 1)
+						if (fromStack.getCard(i + 1).getFace() != fromStack.getCard(i).getFace() - 1)
 							return false;
 						else
 							break;
@@ -129,7 +135,7 @@ public class GameBoard {
 		
 		//This switch is the main reason for stacknames
 		switch (toStack.getStackName()) {
-		case DECK -> { 
+		case  DECK -> { 
 				throw new IllegalArgumentException("Cards cannot be moved back to the deck");
 			}
 		//Applies rules for finalStacks: increasing from ace to king of the same suit
@@ -137,7 +143,7 @@ public class GameBoard {
 			if (card.getFace() == 1) {
 				for (CardStack currentStack : this.finalStacks) {
 					if (!currentStack.empty()) {
-						if (currentStack.get(0).getSuit() == card.getSuit() && currentStack != fromStack) {
+						if (currentStack.getCard(0).getSuit() == card.getSuit() && currentStack != fromStack) {
 							throw new IllegalStateException("The game is in an illegal state: you are attempting to put an ace in a final stack, "
 									+ "but there is already a card of the same suit in a final stack.");
 						}
@@ -164,8 +170,8 @@ public class GameBoard {
 		case P0, P1, P2, P3, P4, P5, P6 -> {
 			if (card.getFace() == 13 && toStack.size() == 0) {
 				return true;
-			} else if (card.getFace() == toStack.get(toStack.size() - 1).getFace() - 1 ) {
-				switch (toStack.get(toStack.size() - 1).getSuit()) {
+			} else if (card.getFace() == toStack.getCard(toStack.size() - 1).getFace() - 1 ) {
+				switch (toStack.getCard(toStack.size() - 1).getSuit()) {
 				case 'S','C' -> {
 					if ("DH".indexOf(card.getSuit()) != -1) {
 						return true;
@@ -194,7 +200,7 @@ public class GameBoard {
 	/**
 	 * saveMove updates variables used to undo 
 	 */
-	private void saveMove(CardStack from, CardStack to, int indexInToStack) {
+	private void saveMove(CardContainer from, CardStack to, int indexInToStack) {
 		if (indexInToStack < 0 || indexInToStack > to.getCardCount()) 
 			throw new IllegalArgumentException("Index is out of bounds stack " + to);
 		
@@ -208,10 +214,14 @@ public class GameBoard {
 			throw new IllegalStateException("The last move is not recorded, or no moves have been made");
 		try {
 			int tempIndex = lastFromStack.getCardCount();
-			lastToStack.play(lastFromStack, indexOfLastMove);
+			if (lastFromStack.getClass() == CardStack.class)
+					lastToStack.play((CardStack) lastFromStack, indexOfLastMove);
+			else {
+				//TODO: Undo drawing cards
+			}
 			indexOfLastMove = tempIndex;
 			if (lastFromStack.getStackName().toString().charAt(0) == 'P') {
-				lastFromStack.incrementHiddenCards();
+				((CardStack) lastFromStack).incrementHiddenCards();
 			}
 			} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException("You can only undo the last move");
@@ -223,9 +233,9 @@ public class GameBoard {
 		if (lastFromStack == null || lastToStack == null)
 			throw new IllegalStateException("The last move is not recorded, or no moves have been made");
 		if (lastFromStack.getStackName().toString().charAt(0) == 'D')
-			this.deal(SolConst.CARDSTODEAL);
+			deal(SolConst.CARDSTODEAL);
 		else
-			moveCard(indexOfLastMove , lastFromStack, lastToStack);
+			moveCard(indexOfLastMove , (CardStack) lastFromStack, lastToStack);
 	}
 
 	/**
@@ -236,7 +246,7 @@ public class GameBoard {
 	 * @param toStack
 	 */
 	public void moveCard(int indexOfCard, CardStack fromStack, CardStack toStack) {
-		Card card = fromStack.get(indexOfCard);
+		Card card = fromStack.getCard(indexOfCard);
 		if (!legalMove(card, fromStack, toStack)) {
 			throw new IllegalArgumentException(String.format("Card: %s in stack %s cannot legally be moved to %s. Input index: %s", card, fromStack, toStack, indexOfCard));
 		}
@@ -252,32 +262,32 @@ public class GameBoard {
 	public void deal(int n) {
 		if (n <= 0)
 			throw new IllegalArgumentException("You must deal a positive number of cards");
-		if (drawingStack.size() == 0) {
+		if (deck.size() == 0) {
 			resetDrawStack();
 			return;
 		}
-		int drawStart;
+		/*int drawStart;
 		if (drawingStack.getCardCount() >= n) {
 			drawStart = drawingStack.getCardCount() - n;
 		} else {
 			drawStart = 0;
-		}
-		drawingStack.play(throwStack, drawStart);
-		saveMove(drawingStack, throwStack, throwStack.size() - n);
+		}*/
+		deck.deal(throwStack, n);
+		saveMove(deck, throwStack, throwStack.size() - n);
 	}
 	
 	/**
 	 * resetDrawStack swaps the drawStack and the throwStack, given that drawStack is empty
 	 */
 	private void resetDrawStack() {
-		if (drawingStack.size() != 0) {
+		if (deck.size() != 0) {
 			throw new IllegalStateException("The drawingStack is not empty, cards should be drawn from it and put on the throwStack first");
 		}
 		if (throwStack.size() > 0) { 
-			drawingStack.addAll(throwStack);
+			deck.addAll(throwStack);
 			throwStack.clear();
 			//Because cards are put "on top" of the throwStack, we want to reverse them back in the drawing stack
-			Collections.reverse(drawingStack);
+			Collections.reverse(deck);
 		} else if (throwStack.size() == 0) {
 			return; //Both stacks are empty, so nothing to be done.
 		}
@@ -289,7 +299,7 @@ public class GameBoard {
 	 * @return
 	 */
 	public boolean isSolved() {
-		if (this.drawingStack.size() > 0 || this.throwStack.size() > 0)
+		if (this.deck.size() > 0 || this.throwStack.size() > 0)
 			return false;
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++)
 			if (this.playStacks[i] != null) 
@@ -298,14 +308,14 @@ public class GameBoard {
 		
 		String suits = "" ;
 		for (int i = 0; i < SolConst.SUITS; i++) {
-			char currentSuit = this.finalStacks[i].get(0).getSuit();
+			char currentSuit = this.finalStacks[i].getCard(0).getSuit();
 			if (suits.indexOf(currentSuit) == - 1)
-				suits += this.finalStacks[i].get(0).getSuit();
+				suits += this.finalStacks[i].getCard(0).getSuit();
 			else 
 				return false;
 			
 			for (int j = 0; j < SolConst.CARDSINSUIT; j++) {
-				if ( ! (this.finalStacks[i].get(j).getFace() == j + 1 && this.finalStacks[i].get(j).getSuit() == currentSuit)) {
+				if ( ! (this.finalStacks[i].getCard(j).getFace() == j + 1 && this.finalStacks[i].getCard(j).getSuit() == currentSuit)) {
 					return false;
 				}
 			}
@@ -349,7 +359,7 @@ public class GameBoard {
 	 * @param stackName
 	 * @return
 	 */
-	public CardStack getStackbyName(SolConst.SType stackName) {
+	public CardContainer getStackbyName(SolConst.SType stackName) {
 		for (CardStack stack: this.playStacks) {
 			if (stack.getStackName().equals(stackName))
 				return stack;
@@ -357,8 +367,8 @@ public class GameBoard {
 		for (CardStack stack: this.finalStacks)
 			if (stack.getStackName().equals(stackName))
 				return stack;
-		if (this.drawingStack.getStackName().equals(stackName))
-			return this.drawingStack;
+		if (this.deck.getStackName().equals(stackName))
+			return this.deck;
 		if (this.throwStack.getStackName().equals(stackName))
 			return this.throwStack;
 		return null;

@@ -3,7 +3,7 @@ package solitaire.model;
 public class Card {
 	private char suit;
 	private int value;
-	private SolConst.SType parentStack = SolConst.SType.DECK;
+	//private SolConst.SType parentStack = SolConst.SType.DECK;
 	
 	public Card(char suit, int value) {
 		legalSuit(suit);
@@ -37,14 +37,14 @@ public class Card {
 		return this.value;
 	}
 
-	public SolConst.SType getParentStack() {
+	/*public SolConst.SType getParentStack() {
 		return parentStack;
 	}
 
 	public void setParentStack(SolConst.SType parentStack) {
 		//TODO: validate
 		this.parentStack = parentStack;
-	}
+	}*/
 	/**
 	 * legalCard checks that the suit and face value of a given card is legal 
 	 * @return

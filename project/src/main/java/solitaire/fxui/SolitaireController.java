@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Platform;
-import javafx.beans.NamedArg;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
@@ -30,20 +29,21 @@ import javafx.scene.layout.AnchorPane;
 public class SolitaireController {
 	
 	private GameBoard board;
-	private CardDeck deck;
+	private CardDeck carddeck;
 	@FXML private AnchorPane Root;
 	@FXML private AnchorPane PlayStacks;
 	@FXML private AnchorPane FinalStacks;
-	@FXML private AnchorPane DeckStacks; 
-	@FXML private Label DrawStack;
+	@FXML private AnchorPane ThrowStack; 
+	@FXML private AnchorPane Deck;
 	@FXML private MenuItem newGame;
 	@FXML private MenuItem Undo;
 	
 	@SuppressWarnings("unchecked")
-	List<Label>[] p = (List<Label>[]) new ArrayList[SolConst.PLAYSTACKSNUM];
+	private List<Label>[] p = (List<Label>[]) new ArrayList[SolConst.PLAYSTACKSNUM];
 	@SuppressWarnings("unchecked")
-	List<Label>[] f = (List<Label>[]) new ArrayList[SolConst.SUITS];
-	List<Label> t;
+	private List<Label>[] f = (List<Label>[]) new ArrayList[SolConst.SUITS];
+	private List<Label> t;
+	private Label cDeck;
 	private Label draggedLabel;
 	private Label dropLabel;
 	private CardStack dragParent;
@@ -60,12 +60,12 @@ public class SolitaireController {
 	 */
 	@FXML
 	private void startNewGame() {
-		deck = new CardDeck(SolConst.CARDSINSUIT);
-		deck.shuffle();
-		board = new GameBoard(deck);
+		carddeck = new CardDeck(SolConst.CARDSINSUIT);
+		carddeck.shuffle();
+		board = new GameBoard(carddeck);
 		FinalStacks.getChildren().clear(); //TODO: Make use of when adding a bottom label
 		PlayStacks.getChildren().clear();
-		DeckStacks.getChildren().clear();
+		ThrowStack.getChildren().clear();
 
 		Undo.setText("Undo");
 		Undo.setOnAction(e -> undo());
@@ -81,20 +81,22 @@ public class SolitaireController {
 		}
 
 		t = new ArrayList<>();
-
-		DrawStack.setText(null);
-		setCustomImage(DrawStack, 'b');
-		DrawStack.setOnMouseClicked((MouseEvent event) -> clickDrawStack());
+		
+		cDeck = new Label(null);
+		Deck.getChildren().add(cDeck);
+		cDeck.setTranslateX(20);
+		setCustomImage(cDeck, 'b');
+		//Deck.setOnMouseClicked((MouseEvent event) -> clickDeck());
 		updateBoard();
 	}
 	
 	@FXML
-	void clickDrawStack() {
+	void clickDeck() {
 		try {board.deal(SolConst.CARDSTODEAL);} catch (Exception e) {
 			e.printStackTrace();
 		}
 		canUndo();
-		updateDrawStack();
+		updateDeck();
 		updateThrowStack();
 	}
 	
@@ -126,11 +128,11 @@ public class SolitaireController {
 	/**
 	 * Updates the throw- and drawstack (e.g. after dealing a card)
 	 */
-	private void updateDrawStack() {
+	private void updateDeck() {
 		if (board.drawStackEmpty()) {
-			setCustomImage(DrawStack,'e');
+			setCustomImage(cDeck,'e');
 		} else {
-			setCustomImage(DrawStack,'b');
+			setCustomImage(cDeck,'b');
 		}
 	}
 	
@@ -208,10 +210,9 @@ public class SolitaireController {
 	}
 
 	private void updateThrowStack() {
-		DeckStacks.getChildren().clear();
-		updateStack(t, board.getThrowStack(), DeckStacks, -1);
-		//TODO: Use
-		//tTranslate();
+		ThrowStack.getChildren().clear();
+		updateStack(t, board.getThrowStack(), ThrowStack, -1);
+		tTranslate();
 	}
 	
 	/**
@@ -223,7 +224,7 @@ public class SolitaireController {
 		
 		try {updatePlayStacks();} catch (Exception e) {e.printStackTrace();}
 		try {updateFinalStacks();} catch (Exception e) {e.printStackTrace();}
-		try {updateDrawStack();} catch (Exception e) {e.printStackTrace();}
+		try {updateDeck();} catch (Exception e) {e.printStackTrace();}
 		try {updateThrowStack();} catch (Exception e) {e.printStackTrace();} 
 		
 		System.out.println(board.toString());
@@ -232,18 +233,17 @@ public class SolitaireController {
 	
 	private void fTranslate(List<Label> l, int i) {
 		for (Label label : l)
-			label.setTranslateX(105 + 85*i); 
+			label.setTranslateX(85*i); 
 		//l.setTranslateY(30);
 	}
 	
-	//private void tTranslate() {
+	private void tTranslate() {
 		/*for (Label label: t)
-			label.setTranslateX(105); */
-		//TODO: fix ?
+			label.setTranslateX(105);*/
 		/*int tsize = t.size();
 		for (int i = tsize - 2; i < tsize && i >= 0; i++)
 			t.get(i).setTranslateX(12*(i + 3 - tsize));*/
-	//}
+	}
 	
 	private void pTranslate(List<Label> l, int i) {
 		l.get(0).setTranslateX(20 + 85*i);
@@ -278,7 +278,7 @@ public class SolitaireController {
 		draggedLabel = l;
 		//l.setCursor(Cursor.NONE);
 		
-		dragParent = board.getStackbyName(stackName);
+		dragParent = (CardStack) board.getStackbyName(stackName);
 		
 		String dbFromStack = "" + ((char) (stackName.toString().charAt(0))) + indexOfStacks + indexOfList;
 
@@ -355,7 +355,7 @@ public class SolitaireController {
 	}
 
 /** 
-	 * setCustomImage(Label, char) sets the top card image to the backside of a card deck
+	 * setCustomImage(Label, char) sets the top card image to the backside of a card carddeck
 	 * @param stack
 	 */
 	private static boolean setCustomImage(Label stack, char imgToShow) {

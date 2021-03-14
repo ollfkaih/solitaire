@@ -2,5 +2,7 @@ package solitaire.model;
 
 public interface CardContainer extends Iterable<Card> {
 	int getCardCount();
-	Card get(int n);
+	Card getCard(int n);
+	Object getStackName();
+	Card get(int currentIndex);
 }

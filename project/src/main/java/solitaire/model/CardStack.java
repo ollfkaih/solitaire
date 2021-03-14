@@ -43,7 +43,7 @@ public class CardStack extends Stack<Card> implements CardContainer {
 	/**
 	 * get(int index) returns the card in the stack at the index if it is not hidden
 	 */
-	public Card get(int n) {
+	public Card getCard(int n) {
 		if (n < 0 || n > this.size() - 1) 
 			throw new IllegalArgumentException("The stack is smaller than the card number requested");
 		else if (this.isHidden(n))
@@ -65,7 +65,7 @@ public class CardStack extends Stack<Card> implements CardContainer {
 	}
 		
 	public void addCard(Card card) {		
-		card.setParentStack(this.stackName);
+		//card.setParentStack(this.stackName);
 		this.push(card);
 	}
 
@@ -81,7 +81,7 @@ public class CardStack extends Stack<Card> implements CardContainer {
 			throw new IllegalArgumentException("Cannot move a card to itself");
 		
 		while (indexOfCard < this.getCardCount()) {
-			Card tempCard = this.get(indexOfCard);
+			Card tempCard = this.getCard(indexOfCard);
 			this.remove(indexOfCard);
 			stack.addCard(tempCard);
 		}
@@ -105,13 +105,10 @@ public class CardStack extends Stack<Card> implements CardContainer {
 		
 	@Override
 	public String toString() {
-		String concat = this.getStackName().toString();
+		String string = this.getStackName().toString();
 		Iterator<Card> iterator =  this.iterator();
-		int tempHide = this.hiddenCards;
-		this.hiddenCards = 0;
 		while (iterator.hasNext())
-			concat +=  "," + iterator.next();
-		this.hiddenCards = tempHide;
-		return concat;
+			string +=  "," + iterator.next();
+		return string;
 	}
 }

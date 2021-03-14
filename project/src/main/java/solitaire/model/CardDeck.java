@@ -7,6 +7,8 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import solitaire.model.SolConst.SType;
+
 @SuppressWarnings("serial")
 public class CardDeck extends Stack<Card> implements CardContainer{
 	
@@ -23,10 +25,10 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 	
 	@Override
 	public String toString() {
-		String string = new String();
-		for (int i = 0; i < this.size(); i++) {
-			string += String.format("Card number %i: %s ", i + 1, this.get(i));
-		}
+		String string = SType.DECK.toString();
+		Iterator<Card> iterator =  this.iterator();
+		while (iterator.hasNext())
+			string +=  "," + iterator.next();
 		return string;
 	}
 
@@ -99,8 +101,8 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 	 * @param n
 	 */
 	public void deal(CardStack stack, int n) {
-		if (n < 0 || n > this.size()) {
-			throw new IllegalArgumentException("The Deck is smaller than the card number requested" + n + " " + this.size());
+		if (n < 0) {
+			throw new IllegalArgumentException("Cannot play a negative number of cards: " + n + ". Stack has " + this.size() + "cards.");
 		}
 		for (; n > 0; n--) {
 			stack.addCard(this.get(this.size() - 1));
@@ -124,5 +126,13 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 	List<Card> getCards(Predicate<Card> predicate) {
 		return this.stream().filter(predicate).collect(Collectors.toList());
 	}
+
+	@Override
+	public SType getStackName() {
+		return SType.DECK ;
+	}
+	
+	
+
 	
 }
