@@ -1,15 +1,17 @@
 package solitaire.model;
 
 import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
 
-import solitaire.model.SolConst.*;
+import solitaire.model.SolConst.SType;
 
 public class GameBoard {
 	private CardStack[] finalStacks = new CardStack[SolConst.SUITS]; //four final stacks 
 	private CardStack[] playStacks = new CardStack[SolConst.PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
 	private CardDeck deck;// = new CardStack(SType.DECK); //the stack cards are drawn from, three by three
 	private CardStack throwStack; //The stack of drawn cards next to the drawingStack
-	//private Map <SolConst.SType, CardContainer> stacks = new HashMap<>(); 
+	private Map <SolConst.SType, CardContainer> stacks = new TreeMap<>(); 
 	
 	//Track last move
 	private CardContainer lastFromStack;
@@ -25,21 +27,21 @@ public class GameBoard {
 	public GameBoard(CardDeck deck) {
 		
 		throwStack = new CardStack(SType.THROWSTACK);
-//		stacks.put(SType.THROWSTACK, throwStack);
+		stacks.put(SType.THROWSTACK, throwStack);
 		
 		for (int i = SolConst.PLAYSTACKSNUM - 1; i >= 0; i--) {
 			playStacks[i] = new CardStack(SType.valueOf("P" + i));
 			deck.deal(playStacks[i], i + 1);
 			playStacks[i].setHiddenCards(i);
-//			stacks.put(SType.valueOf("P" + i), playStacks[i]);			
+			stacks.put(SType.valueOf("P" + i), playStacks[i]);			
 		}
 		
 		this.deck = deck;
-//		stacks.put(SType.DECK, deck);
+		stacks.put(SType.DECK, deck);
 		
 		for (int i = 0; i < SolConst.SUITS; i++) {
 			finalStacks[i] = new CardStack(SType.valueOf("F" + i));
-//			stacks.put(SType.valueOf("F" + i), finalStacks[i]);
+			stacks.put(SType.valueOf("F" + i), finalStacks[i]);
 		}
 	}
 	
@@ -64,11 +66,9 @@ public class GameBoard {
 
 	@Override
 	public String toString() {
-		String game = deck + "\n" + throwStack + "\n";
-		for (CardStack s: playStacks)
-			game += s + "\n";
-		for (CardStack s: finalStacks)
-			game += s + "\n";
+		String game = "";
+		for (Map.Entry<SolConst.SType, CardContainer> stack : stacks.entrySet())
+			game += (stack.getKey().toString() + stack.getValue() + "\n"); 
 		return game;
 	}
 			
@@ -77,13 +77,13 @@ public class GameBoard {
 	 */
 	private boolean isCardFree(Card card, CardStack fromStack) {
 		if (!fromStack.contains(card)) 
-			throw new IllegalArgumentException("The card " + card + " is not a part of " + fromStack.toString());
+			throw new IllegalArgumentException("The card " + card + " is not in " + fromStack.toString());
 		if (deck.contains(card)) {
 			System.out.println(deck);
 			return false;
 		} else if (fromStack.getCard(fromStack.getCardCount() - 1).equals(card)) {
 			return true;
-		} else {
+		} else if (fromStack.getStackName().toString().charAt(0) == 'P') {
 			for (int i = fromStack.indexOf(card); i < fromStack.getCardCount() - 1; i++) {
 				//Check that the card on top is a different color and face value one less
 				//If the cards follow the rules, each switch ends with a break statement, and if we never hit a condition not allowed, we "avoid" 
@@ -118,6 +118,7 @@ public class GameBoard {
 			} 
 			return true;
 		}
+		return false;
 	}
 	/**
 	 * Legalmove(Card, CardStack, CardStack) checks if the card is free (with isCardFree(card, CardStack))
@@ -132,7 +133,7 @@ public class GameBoard {
 		if (!isCardFree(card, fromStack)) {
 			return false;
 		}
-		
+
 		//This switch is the main reason for stacknames
 		switch (toStack.getStackName()) {
 		case  DECK -> { 

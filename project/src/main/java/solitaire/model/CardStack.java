@@ -105,7 +105,8 @@ public class CardStack extends Stack<Card> implements CardContainer {
 		
 	@Override
 	public String toString() {
-		String string = this.getStackName().toString();
+		//String string = this.getStackName().toString();
+		String string = "";
 		Iterator<Card> iterator =  this.iterator();
 		while (iterator.hasNext())
 			string +=  "," + iterator.next();

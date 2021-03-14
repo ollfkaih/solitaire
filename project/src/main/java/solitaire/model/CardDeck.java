@@ -25,7 +25,8 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 	
 	@Override
 	public String toString() {
-		String string = SType.DECK.toString();
+		// String string = SType.DECK.toString();
+		String string = "";
 		Iterator<Card> iterator =  this.iterator();
 		while (iterator.hasNext())
 			string +=  "," + iterator.next();

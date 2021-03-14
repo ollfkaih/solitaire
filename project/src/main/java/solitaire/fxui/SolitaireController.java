@@ -122,9 +122,14 @@ public class SolitaireController {
 	}
 	
 	@FXML void exit() {
+		saveGame();
         Platform.exit();
 	}
 	
+	public void saveGame() {
+		IOController.writeToFile(this.board);
+	}
+
 	/**
 	 * Updates the throw- and drawstack (e.g. after dealing a card)
 	 */
