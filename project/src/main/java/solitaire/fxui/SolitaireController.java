@@ -3,11 +3,15 @@ package solitaire.fxui;
 import solitaire.model.GameBoard;
 import solitaire.model.SolConst;
 import solitaire.model.Card;
+import solitaire.model.CardContainer;
 import solitaire.model.CardDeck;
 import solitaire.model.CardStack;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -49,6 +53,9 @@ public class SolitaireController {
 	private CardStack dragParent;
 	boolean initpStacks;
 	
+	private final IOController ioControl = new IOController();
+	private String filename = "Save";
+	
 	@FXML
 	private void initialize() {
 		newGame.setAccelerator(new KeyCodeCombination(KeyCode.F2));
@@ -61,8 +68,12 @@ public class SolitaireController {
 	@FXML
 	private void startNewGame() {
 		carddeck = new CardDeck(SolConst.CARDSINSUIT);
-		carddeck.shuffle();
+		carddeck.shuffle();	
 		board = new GameBoard(carddeck);
+		resetGraphics();
+	}
+	
+	private void resetGraphics() {
 		FinalStacks.getChildren().clear(); //TODO: Make use of when adding a bottom label
 		PlayStacks.getChildren().clear();
 		ThrowStack.getChildren().clear();
@@ -86,7 +97,6 @@ public class SolitaireController {
 		Deck.getChildren().add(cDeck);
 		cDeck.setTranslateX(20);
 		setCustomImage(cDeck, 'b');
-		//Deck.setOnMouseClicked((MouseEvent event) -> clickDeck());
 		updateBoard();
 	}
 	
@@ -101,7 +111,7 @@ public class SolitaireController {
 	}
 	
 	@FXML void undo() {
-		try {board.undo();} catch (Exception e) {e.printStackTrace();}
+		try {board.undo();} catch (Exception e) {e.printStackTrace(); return;}
 		updateBoard();
 		Undo.setText("Redo");
 		Undo.setOnAction(e -> redo());
@@ -109,7 +119,7 @@ public class SolitaireController {
 	}
 	
 	private void redo() {
-		try {board.redo();} catch (Exception e) {e.printStackTrace();}
+		try {board.redo();} catch (Exception e) {e.printStackTrace(); return;}
 		updateBoard();
 		canUndo();
 	}
@@ -127,7 +137,17 @@ public class SolitaireController {
 	}
 	
 	public void saveGame() {
-		IOController.writeToFile(this.board);
+		ioControl.writeToFile(this.board);
+	}
+	
+	public void loadGame() {
+		try {
+			this.board = ioControl.loadGame(filename);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		resetGraphics();
 	}
 
 	/**
@@ -175,6 +195,8 @@ public class SolitaireController {
 				}
 			} else {
 				setCustomImage(stackLabels.get(labelIndex),'b');
+				if (cardIndex == stack.size() - 1)
+					stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> revealCard(event, stack));
 			}
 	    	stackLabels.get(labelIndex).setOnDragDone(dragDoneEvent);
 
@@ -313,6 +335,17 @@ public class SolitaireController {
 	        }
 		};
 		
+	/**
+	 * Calls revalCard() on our gameboard to reveal the top card of a play stack
+	 * @param event
+	 * @param stack
+	 */
+	private void revealCard(MouseEvent event, CardStack stack) {
+		board.revealCard(stack);
+		Undo.setDisable(true);
+		updateBoard();
+	}
+	
 	private void drop(DragEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.SType stackName) {
 		Dragboard db = event.getDragboard();
 		if (!db.hasString()) throw new IllegalArgumentException("The dragboard is empty for " + event.getSource());

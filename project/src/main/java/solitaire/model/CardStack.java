@@ -5,9 +5,9 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("serial")
 public class CardStack extends Stack<Card> implements CardContainer {
 	
+	private static final long serialVersionUID = 1L;
 	private int hiddenCards;
 	private SolConst.SType stackName;
 	
@@ -25,14 +25,27 @@ public class CardStack extends Stack<Card> implements CardContainer {
 		this.hiddenCards = hiddenCards;
 	}
 	
+	public int getHiddenCards() {
+		return this.hiddenCards;
+	}
+	
 	/**
 	 * increments the number of hidden cards in this stack.
 	 */
 	public void incrementHiddenCards() {
-		System.out.println(hiddenCards + " count: " + this.getCardCount());
 		if (hiddenCards >= this.getCardCount() - 1)
 			throw new IllegalStateException("This stack has the maximum number of hidden cards");
 		hiddenCards++;
+	}
+	
+	/**
+	 * increments the number of hidden cards in this stack.
+	 */
+	public void decrementHiddenCards() {
+		if (hiddenCards > 0 && this.isHidden(this.size() - 1))
+			hiddenCards--;
+		else if (hiddenCards <= 0)
+			throw new IllegalStateException("This stack has no hidden cards");
 	}
 	
 	public int getCardCount() {
@@ -65,14 +78,13 @@ public class CardStack extends Stack<Card> implements CardContainer {
 	}
 		
 	public void addCard(Card card) {		
-		//card.setParentStack(this.stackName);
 		this.push(card);
 	}
 
 	/**
 	 * play(CardStack, int) will move the top cards including indexOfCard to any other stack (all validation of rules is done in GameBoard)
 	 */
-	 public void play(CardStack stack, int indexOfCard) {
+	 public void play(CardContainer stack, int indexOfCard) {
 		if (indexOfCard < 0 || indexOfCard > this.size() - 1) {
 			throw new IllegalArgumentException("Cannot play card at index larger than stack size");
 		}
@@ -87,8 +99,8 @@ public class CardStack extends Stack<Card> implements CardContainer {
 		}
 		
 		//In playStacks, reveal another card if we have removed all visible cards
-		if (indexOfCard == hiddenCards && hiddenCards > 0)
-			hiddenCards--;
+		//if (indexOfCard == hiddenCards && hiddenCards > 0)
+		//	hiddenCards--;
 	 }
 	@Override
 	public Iterator<Card> iterator() {
@@ -105,11 +117,14 @@ public class CardStack extends Stack<Card> implements CardContainer {
 		
 	@Override
 	public String toString() {
-		//String string = this.getStackName().toString();
 		String string = "";
 		Iterator<Card> iterator =  this.iterator();
-		while (iterator.hasNext())
-			string +=  "," + iterator.next();
+		while (iterator.hasNext()) {
+			if (string.length() == 0)
+				string += iterator.next();
+			else
+				string += "," + iterator.next();
+		}
 		return string;
 	}
 }

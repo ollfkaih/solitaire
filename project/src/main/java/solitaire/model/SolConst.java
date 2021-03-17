@@ -1,7 +1,5 @@
 package solitaire.model;
 
-import java.nio.file.Path;
-
 //Solitaire Constants
 public abstract class SolConst {
 
@@ -11,6 +9,4 @@ public abstract class SolConst {
 	public static int SUITS = 4;
 	public static String IMGDIR = "img/";
 	public static int CARDSTODEAL = 3;
-	public static Path SAVEDIR = Path.of(System.getenv("APPDATA"), "Solitaire");
-	public static Path SAVEFILE = Path.of(System.getenv("APPDATA"), "Solitaire", "Save.txt");
 }

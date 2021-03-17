@@ -9,9 +9,10 @@ import java.util.stream.Collectors;
 
 import solitaire.model.SolConst.SType;
 
-@SuppressWarnings("serial")
 public class CardDeck extends Stack<Card> implements CardContainer{
-	
+
+	private static final long serialVersionUID = 1L;
+
 	public CardDeck(int n) {
 		if (n > 13)
 			throw new IllegalArgumentException("The deck has to be at most 52 cards");
@@ -23,16 +24,25 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 		}
 	}
 	
+	//Converts a stack to a deck
+	public CardDeck(CardStack stack) {
+		for (Card card : stack)
+			this.add(card);
+	}
+	
 	@Override
 	public String toString() {
 		// String string = SType.DECK.toString();
 		String string = "";
 		Iterator<Card> iterator =  this.iterator();
 		while (iterator.hasNext())
-			string +=  "," + iterator.next();
+			if (string.length() == 0)
+				string += iterator.next();
+			else
+				string += "," + iterator.next();
 		return string;
 	}
-
+	
 	public int getCardCount() {
 		int i = 0;
 		int count = 0;
@@ -105,10 +115,18 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 		if (n < 0) {
 			throw new IllegalArgumentException("Cannot play a negative number of cards: " + n + ". Stack has " + this.size() + "cards.");
 		}
-		for (; n > 0; n--) {
+		for (int i = 0; i < n && this.size() > 0; i++) {
+			if (this.size() - n + i >= 0) { 
+				stack.addCard(this.get(this.size() - n + i));
+				this.remove(this.size() - n + i);
+			} else 
+				i++;
+		}
+		//TODO: Swaps the order, remove
+		/*for (; n > 0 && this.size() > 0; n--) {
 			stack.addCard(this.get(this.size() - 1));
 			this.remove(this.size() - 1);
-		}
+		}*/
 	}
 	
 	@Override
@@ -133,7 +151,7 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 		return SType.DECK ;
 	}
 	
-	
-
-	
+	public void addCard(Card card) {		
+		this.push(card);
+	}	
 }

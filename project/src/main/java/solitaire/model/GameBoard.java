@@ -3,19 +3,21 @@ package solitaire.model;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import solitaire.model.SolConst.SType;
 
 public class GameBoard {
-	private CardStack[] finalStacks = new CardStack[SolConst.SUITS]; //four final stacks 
-	private CardStack[] playStacks = new CardStack[SolConst.PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
-	private CardDeck deck;// = new CardStack(SType.DECK); //the stack cards are drawn from, three by three
-	private CardStack throwStack; //The stack of drawn cards next to the drawingStack
+	//private CardStack[] finalStacks = new CardStack[SolConst.SUITS]; //four final stacks 
+	//private CardStack[] playStacks = new CardStack[SolConst.PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
+	//private CardDeck deck;// = new CardStack(SType.DECK); //the stack cards are drawn from, three by three
+	//private CardStack throwStack; //The stack of drawn cards next to the drawingStack
 	private Map <SolConst.SType, CardContainer> stacks = new TreeMap<>(); 
 	
 	//Track last move
 	private CardContainer lastFromStack;
-	private CardStack lastToStack;
+	private CardContainer lastToStack;
 	private int indexOfLastMove;
 	
 	/**
@@ -26,39 +28,53 @@ public class GameBoard {
 	 */
 	public GameBoard(CardDeck deck) {
 		
-		throwStack = new CardStack(SType.THROWSTACK);
-		stacks.put(SType.THROWSTACK, throwStack);
+		//throwStack = new CardStack(SType.THROWSTACK);
+		stacks.put(SType.THROWSTACK, new CardStack(SType.THROWSTACK));
 		
 		for (int i = SolConst.PLAYSTACKSNUM - 1; i >= 0; i--) {
-			playStacks[i] = new CardStack(SType.valueOf("P" + i));
-			deck.deal(playStacks[i], i + 1);
-			playStacks[i].setHiddenCards(i);
-			stacks.put(SType.valueOf("P" + i), playStacks[i]);			
+			CardStack playStack = new CardStack(SType.valueOf("P" + i));
+			deck.deal(playStack, i + 1);
+			playStack.setHiddenCards(i);
+			stacks.put(SType.valueOf("P" + i), playStack);			
 		}
 		
-		this.deck = deck;
 		stacks.put(SType.DECK, deck);
 		
-		for (int i = 0; i < SolConst.SUITS; i++) {
-			finalStacks[i] = new CardStack(SType.valueOf("F" + i));
-			stacks.put(SType.valueOf("F" + i), finalStacks[i]);
-		}
+		for (int i = 0; i < SolConst.SUITS; i++) 
+			stacks.put(SType.valueOf("F" + i), new CardStack(SType.valueOf("F" + i)));
 	}
 	
+	public GameBoard(Map<SType, CardContainer> map) {
+		//TODO: valider gyldig spill (map)
+		this.stacks = map;
+		for (Map.Entry<SolConst.SType, CardContainer> stack : stacks.entrySet()) {
+			switch (stack.getKey().toString().charAt(0)) {
+			//case 'T' -> {this.throwStack = (CardStack) stack.getValue();}
+			//case 'D' -> {this.deck = (CardDeck) stack.getValue();}
+			//case 'P' -> {this.playStacks[(int) (stack.getKey().toString().charAt(1) - '0')] = (CardStack) stack.getValue();}
+			//case 'F' -> {this.finalStacks[(int) (stack.getKey().toString().charAt(1) - '0')] = (CardStack) stack.getValue();}
+			}
+		}
+	}
+
 	public CardStack getFinalStack(int i) {
-		return finalStacks[i];
+		return (CardStack) stacks.get(SType.valueOf("F" + i));
 	}
 	
 	public CardStack getPlayStack(int i) {
-		return playStacks[i];
+		return (CardStack) stacks.get(SType.valueOf("P" + i));
 	}
 	
 	public CardStack getThrowStack() {
-		return throwStack;
+		return (CardStack) stacks.get(SType.THROWSTACK);
+	}
+	
+	private CardDeck getDeck() {
+		return (CardDeck) stacks.get(SType.DECK);
 	}
 
 	public boolean drawStackEmpty() {
-		if (deck.isEmpty())
+		if (getDeck().isEmpty())
 			return true;
 		else 
 			return false;
@@ -67,8 +83,13 @@ public class GameBoard {
 	@Override
 	public String toString() {
 		String game = "";
-		for (Map.Entry<SolConst.SType, CardContainer> stack : stacks.entrySet())
-			game += (stack.getKey().toString() + stack.getValue() + "\n"); 
+		for (Map.Entry<SolConst.SType, CardContainer> stack : stacks.entrySet()) {
+			String key = stack.getKey().toString();
+			if (key.charAt(0) == 'P')
+				game += (key + ":" + ((CardStack) stack.getValue()).getHiddenCards() + ":" + stack.getValue() + "\n");
+			else 
+				game += (key + ":" + ":" + stack.getValue() + "\n");
+		}
 		return game;
 	}
 			
@@ -78,8 +99,8 @@ public class GameBoard {
 	private boolean isCardFree(Card card, CardStack fromStack) {
 		if (!fromStack.contains(card)) 
 			throw new IllegalArgumentException("The card " + card + " is not in " + fromStack.toString());
-		if (deck.contains(card)) {
-			System.out.println(deck);
+		if (getDeck().contains(card)) {
+			System.out.println(getDeck());
 			return false;
 		} else if (fromStack.getCard(fromStack.getCardCount() - 1).equals(card)) {
 			return true;
@@ -142,8 +163,9 @@ public class GameBoard {
 		//Applies rules for finalStacks: increasing from ace to king of the same suit
 		case F0, F1, F2, F3 -> {
 			if (card.getFace() == 1) {
-				for (CardStack currentStack : this.finalStacks) {
-					if (!currentStack.empty()) {
+				for (int i = 0; i < SolConst.SUITS; i++) {
+					CardContainer currentStack = stacks.get(SType.valueOf("F" + i));
+					if (!getFinalStack(i).empty()) {
 						if (currentStack.getCard(0).getSuit() == card.getSuit() && currentStack != fromStack) {
 							throw new IllegalStateException("The game is in an illegal state: you are attempting to put an ace in a final stack, "
 									+ "but there is already a card of the same suit in a final stack.");
@@ -151,16 +173,14 @@ public class GameBoard {
 					}
 				} return true; //No stacks had a card of the same suit, and card is an ace.
 			} else {
-				int i = 0;
-				for (CardStack currentStack : this.finalStacks) {
+				for (int i = 0; i < SolConst.SUITS; i++) {
+					CardContainer currentStack = stacks.get(SType.valueOf("F" + i));
 					if (toStack.equals(currentStack)) {
 						if (getFinalStack(i).peek().getSuit() == card.getSuit()) {
 							if (getFinalStack(i).peek().getFace() == card.getFace() - 1) {
 								return true;
 							}
 						}
-					} else {
-						i++;
 					}
 				}
 			}
@@ -201,9 +221,9 @@ public class GameBoard {
 	/**
 	 * saveMove updates variables used to undo 
 	 */
-	private void saveMove(CardContainer from, CardStack to, int indexInToStack) {
+	private void saveMove(CardContainer from, CardContainer to, int indexInToStack) {
 		if (indexInToStack < 0 || indexInToStack > to.getCardCount()) 
-			throw new IllegalArgumentException("Index is out of bounds stack " + to);
+			throw new IllegalArgumentException("Index is out of bounds stack " + to + ", index:" + indexInToStack);
 		
 		lastFromStack = from;
 		lastToStack = to;
@@ -215,15 +235,17 @@ public class GameBoard {
 			throw new IllegalStateException("The last move is not recorded, or no moves have been made");
 		try {
 			int tempIndex = lastFromStack.getCardCount();
-			if (lastFromStack.getClass() == CardStack.class)
-					lastToStack.play((CardStack) lastFromStack, indexOfLastMove);
+			if (lastToStack.getClass() == CardStack.class) 
+				((CardStack) lastToStack).play(lastFromStack, indexOfLastMove);
 			else {
-				//TODO: Undo drawing cards
-			}
+				if (getThrowStack().size() == 0 && getDeck().size() > 0) {
+					getDeck().stream().forEach(c -> getThrowStack().addCard(c));
+					Collections.reverse(getThrowStack());
+					getDeck().clear();
+				} else
+					((CardDeck) lastToStack).deal((CardStack) lastFromStack, indexOfLastMove);
+ 			}
 			indexOfLastMove = tempIndex;
-			if (lastFromStack.getStackName().toString().charAt(0) == 'P') {
-				((CardStack) lastFromStack).incrementHiddenCards();
-			}
 			} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException("You can only undo the last move");
 			}
@@ -233,10 +255,10 @@ public class GameBoard {
 	public void redo() {
 		if (lastFromStack == null || lastToStack == null)
 			throw new IllegalStateException("The last move is not recorded, or no moves have been made");
-		if (lastFromStack.getStackName().toString().charAt(0) == 'D')
+		if (stacks.get(SType.DECK).equals(lastToStack) || stacks.get(SType.DECK).equals(lastFromStack))
 			deal(SolConst.CARDSTODEAL);
 		else
-			moveCard(indexOfLastMove , (CardStack) lastFromStack, lastToStack);
+			moveCard(indexOfLastMove , (CardStack) lastFromStack, (CardStack) lastToStack);
 	}
 
 	/**
@@ -263,34 +285,46 @@ public class GameBoard {
 	public void deal(int n) {
 		if (n <= 0)
 			throw new IllegalArgumentException("You must deal a positive number of cards");
-		if (deck.size() == 0) {
+		if (getDeck().size() == 0) {
 			resetDrawStack();
+			saveMove(getThrowStack(), getDeck(), 0);
 			return;
 		}
-		/*int drawStart;
-		if (drawingStack.getCardCount() >= n) {
-			drawStart = drawingStack.getCardCount() - n;
-		} else {
-			drawStart = 0;
-		}*/
-		deck.deal(throwStack, n);
-		saveMove(deck, throwStack, throwStack.size() - n);
+		getDeck().deal(getThrowStack(), n);
+		int index;
+		if (getThrowStack().size() <= 3) 
+			index = 0;
+		else 
+			index = getThrowStack().size() - n;
+		saveMove(getDeck(), getThrowStack(), index);
 	}
 	
 	/**
 	 * resetDrawStack swaps the drawStack and the throwStack, given that drawStack is empty
 	 */
 	private void resetDrawStack() {
-		if (deck.size() != 0) {
+		if (getDeck().size() != 0) {
 			throw new IllegalStateException("The drawingStack is not empty, cards should be drawn from it and put on the throwStack first");
 		}
-		if (throwStack.size() > 0) { 
-			deck.addAll(throwStack);
-			throwStack.clear();
+		if (getThrowStack().size() > 0) { 
+			getDeck().addAll(getThrowStack());
+			getThrowStack().clear();
 			//Because cards are put "on top" of the throwStack, we want to reverse them back in the drawing stack
-			Collections.reverse(deck);
-		} else if (throwStack.size() == 0) {
+			Collections.reverse(getDeck());
+		} else if (getThrowStack().size() == 0) {
 			return; //Both stacks are empty, so nothing to be done.
+		}
+	}
+	
+	/**
+	 * Tries to decrement the hiddencards counter of a stack by one
+	 * @param cstack
+	 */
+	public void revealCard(CardStack cstack) {
+		if (stacks.entrySet().stream().filter(stack -> stack.getValue().equals(cstack) && stack.getKey().toString().charAt(0) == 'P') != null) {
+			cstack.decrementHiddenCards();
+			//reveal cannot be undone, setting lastFromStack to null means undo and redo will throw illegal State Exception
+			lastFromStack = null;
 		}
 	}
 	
@@ -300,23 +334,23 @@ public class GameBoard {
 	 * @return
 	 */
 	public boolean isSolved() {
-		if (this.deck.size() > 0 || this.throwStack.size() > 0)
+		if (getDeck().size() > 0 || getThrowStack().size() > 0)
 			return false;
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++)
-			if (this.playStacks[i] != null) 
-				if (this.playStacks[i].getCardCount() > 0)
+			if (getPlayStack(i) != null) 
+				if (getPlayStack(i).getCardCount() > 0)
 					return false;
 		
 		String suits = "" ;
 		for (int i = 0; i < SolConst.SUITS; i++) {
-			char currentSuit = this.finalStacks[i].getCard(0).getSuit();
+			char currentSuit = getFinalStack(i).getCard(0).getSuit();
 			if (suits.indexOf(currentSuit) == - 1)
-				suits += this.finalStacks[i].getCard(0).getSuit();
+				suits += getFinalStack(i).getCard(0).getSuit();
 			else 
 				return false;
 			
 			for (int j = 0; j < SolConst.CARDSINSUIT; j++) {
-				if ( ! (this.finalStacks[i].getCard(j).getFace() == j + 1 && this.finalStacks[i].getCard(j).getSuit() == currentSuit)) {
+				if ( ! (getFinalStack(i).getCard(j).getFace() == j + 1 && getFinalStack(i).getCard(j).getSuit() == currentSuit)) {
 					return false;
 				}
 			}
@@ -337,14 +371,14 @@ public class GameBoard {
 				thisStackTopCard = this.getFinalStack(i).peek();
 			} catch (Exception IllegalArgumentException) {
 				if (card.getFace() == 1) {
-					moveCard(fromStack.size() - 1, fromStack, finalStacks[i]);
+					moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
 					return;
 				}
 			}
 			if (thisStackTopCard != null) {
 				if (thisStackTopCard.getSuit() == card.getSuit()) {
 					try {
-						moveCard(fromStack.size() - 1, fromStack, finalStacks[i]);
+						moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
 					} catch (IllegalArgumentException e) {
 						//Card may not have been one face value higher, do nothing
 						e.printStackTrace();
@@ -361,18 +395,7 @@ public class GameBoard {
 	 * @return
 	 */
 	public CardContainer getStackbyName(SolConst.SType stackName) {
-		for (CardStack stack: this.playStacks) {
-			if (stack.getStackName().equals(stackName))
-				return stack;
-		}
-		for (CardStack stack: this.finalStacks)
-			if (stack.getStackName().equals(stackName))
-				return stack;
-		if (this.deck.getStackName().equals(stackName))
-			return this.deck;
-		if (this.throwStack.getStackName().equals(stackName))
-			return this.throwStack;
-		return null;
+		return stacks.get(stackName);
 	}
 }
 
