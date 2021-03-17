@@ -3,20 +3,18 @@ package solitaire.fxui;
 import solitaire.model.GameBoard;
 import solitaire.model.SolConst;
 import solitaire.model.Card;
-import solitaire.model.CardContainer;
 import solitaire.model.CardDeck;
 import solitaire.model.CardStack;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -29,11 +27,11 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 
 public class SolitaireController {
 	
 	private GameBoard board;
-	private CardDeck carddeck;
 	@FXML private AnchorPane Root;
 	@FXML private AnchorPane PlayStacks;
 	@FXML private AnchorPane FinalStacks;
@@ -67,7 +65,7 @@ public class SolitaireController {
 	 */
 	@FXML
 	private void startNewGame() {
-		carddeck = new CardDeck(SolConst.CARDSINSUIT);
+		CardDeck carddeck = new CardDeck(SolConst.CARDSINSUIT);
 		carddeck.shuffle();	
 		board = new GameBoard(carddeck);
 		resetGraphics();
@@ -300,7 +298,8 @@ public class SolitaireController {
 	 * @param stackName
 	 */
 	private void dragDetected(MouseEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.SType stackName) {
-		
+		Image img = null;
+
 		Dragboard db = l.startDragAndDrop(TransferMode.MOVE);
 		draggedLabel = l;
 		//l.setCursor(Cursor.NONE);
@@ -312,13 +311,34 @@ public class SolitaireController {
 	    ClipboardContent content = new ClipboardContent();
 	    content.putString(dbFromStack);
 	    db.setContent(content);
-	    //TODO: Make snapshot render cards on top ?P33
-	    db.setDragView(l.snapshot(null, null), event.getX(), event.getY());
-		draggedLabel.setVisible(false);
+
+		if (ThrowStack.getChildren().contains(l) || FinalStacks.getChildren().contains(l)) {
+			img = l.snapshot(null, null);
+			draggedLabel.setVisible(false);
+		} else {
+			Pane stackOfCards = new Pane();
+			boolean addCards = false;
+			int indexOfL = p[indexOfStacks].indexOf(l);
+			for (int i = indexOfL; i < p[indexOfStacks].size(); i++) {
+				if (addCards || p[indexOfStacks].get(i).equals(l)) {
+					addCards = true;
+					ImageView view = new ImageView(p[indexOfStacks].get(i).snapshot(null,null));
+					view.setY(15*(i - indexOfL));
+					//TODO: Fix scaling?
+					view.setScaleX(1.5);
+					view.setScaleY(1.5);
+					p[indexOfStacks].get(i).setVisible(false);
+					stackOfCards.getChildren().add(view);
+				}
+			}
+			img = stackOfCards.snapshot(null, null);
+		}
+	    db.setDragView(img, event.getX(), event.getY());
 	    event.consume();
 	}
 	
-	//dragOverEvent makes the target able to accept cards
+	/** dragOverEvent makes the target able to accept cards
+	 */
 	EventHandler <DragEvent> dragOverEvent = new EventHandler <DragEvent>() {
         public void handle(DragEvent event) {
             event.acceptTransferModes(TransferMode.MOVE);
@@ -327,9 +347,13 @@ public class SolitaireController {
         }
 	};
 	
-	//dragDoneEvent sets the label visible again (triggered when card is dropped on a non-target)
+	/**
+	 * dragDoneEvent sets the label visible again (triggered when card is dropped on a non-target)
+	 */
 		EventHandler <DragEvent> dragDoneEvent = new EventHandler <DragEvent>() {
 	        public void handle(DragEvent event) {
+				for (Node label : PlayStacks.getChildren())
+					label.setVisible(true);
 	            draggedLabel.setVisible(true);
 	        	//event.consume();
 	        }
@@ -350,9 +374,12 @@ public class SolitaireController {
 		Dragboard db = event.getDragboard();
 		if (!db.hasString()) throw new IllegalArgumentException("The dragboard is empty for " + event.getSource());
 		dropLabel = l;
+		//TODO: More efficient? 
+		for (Node label : PlayStacks.getChildren())
+			label.setVisible(true);
 		draggedLabel.setVisible(true);
-		//System.out.println(draggedLabel.getUserData().toString());
 		if (draggedLabel == dropLabel) return;
+
 		int inStackIndex = 0;
 		char targetStack = ((Label) event.getTarget()).getUserData().toString().charAt(0);
 		char fromType = db.getString().charAt(0);

@@ -3,16 +3,11 @@ package solitaire.model;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import solitaire.model.SolConst.SType;
 
 public class GameBoard {
-	//private CardStack[] finalStacks = new CardStack[SolConst.SUITS]; //four final stacks 
-	//private CardStack[] playStacks = new CardStack[SolConst.PLAYSTACKSNUM]; //triangular playing stacks for temporary placement of cards
-	//private CardDeck deck;// = new CardStack(SType.DECK); //the stack cards are drawn from, three by three
-	//private CardStack throwStack; //The stack of drawn cards next to the drawingStack
+	//stacks is a map of the boards card stacks: four final stacks, seven play stacks, a deck and a throw stack
 	private Map <SolConst.SType, CardContainer> stacks = new TreeMap<>(); 
 	
 	//Track last move
@@ -21,40 +16,45 @@ public class GameBoard {
 	private int indexOfLastMove;
 	
 	/**
-	 * This constructor takes a deck argument and initialises a game by putting 1 card in the first play stack,
+	 * This constructor initialises a game by putting 1 card in the first play stack,
 	 * then 2 in the next and so on until the seventh has six. 
-	 * When these 28 cards are dealt, the remaining 24 are put into the drawing stack.
-	 * @param deck 
+	 * When these 28 cards are dealt, the remaining 24 are left in the deck.
+	 * @param deck The deck to use for our game
 	 */
 	public GameBoard(CardDeck deck) {
+		if (deck.size() != SolConst.SUITS * SolConst.CARDSINSUIT) 
+			throw new IllegalArgumentException("The deck for our gameboard must have " + SolConst.SUITS * SolConst.CARDSINSUIT + " cards.");
 		
-		//throwStack = new CardStack(SType.THROWSTACK);
+		stacks.put(SType.DECK, deck);
+		//The throwstack is where we put cards drawn from the deck
 		stacks.put(SType.THROWSTACK, new CardStack(SType.THROWSTACK));
 		
+		//The playstacks are where we put cards for temporary storage while we play the game
 		for (int i = SolConst.PLAYSTACKSNUM - 1; i >= 0; i--) {
 			CardStack playStack = new CardStack(SType.valueOf("P" + i));
-			deck.deal(playStack, i + 1);
+			((CardDeck) stacks.get(SType.DECK)).deal(playStack, i + 1);
 			playStack.setHiddenCards(i);
 			stacks.put(SType.valueOf("P" + i), playStack);			
 		}
 		
-		stacks.put(SType.DECK, deck);
-		
+		//The finalstacks are where we put cards of the same suit from ace to king in order to beat the game
 		for (int i = 0; i < SolConst.SUITS; i++) 
 			stacks.put(SType.valueOf("F" + i), new CardStack(SType.valueOf("F" + i)));
 	}
 	
 	public GameBoard(Map<SType, CardContainer> map) {
-		//TODO: valider gyldig spill (map)
+		if (map.size() != 13)
+			throw new IllegalArgumentException("The stack map has too many stacks");
+		// int totalSize = 0;
+		map.entrySet().stream().filter(e -> ! e.getKey().equals(SType.DECK)).forEach(e -> {
+			int cardCount = e.getValue().getCardCount();
+			// totalSize += cardCount;
+			if (cardCount > SolConst.CARDSINSUIT + ((CardStack) e.getValue()).getHiddenCards())
+				throw new IllegalArgumentException("The stack map contains stacks that are too big");
+		});
+		//TODO: Less than 52 cards
+		// map.values().stream().collect(Collectors.toCollection(ArrayList::new)).;
 		this.stacks = map;
-		for (Map.Entry<SolConst.SType, CardContainer> stack : stacks.entrySet()) {
-			switch (stack.getKey().toString().charAt(0)) {
-			//case 'T' -> {this.throwStack = (CardStack) stack.getValue();}
-			//case 'D' -> {this.deck = (CardDeck) stack.getValue();}
-			//case 'P' -> {this.playStacks[(int) (stack.getKey().toString().charAt(1) - '0')] = (CardStack) stack.getValue();}
-			//case 'F' -> {this.finalStacks[(int) (stack.getKey().toString().charAt(1) - '0')] = (CardStack) stack.getValue();}
-			}
-		}
 	}
 
 	public CardStack getFinalStack(int i) {
