@@ -21,4 +21,12 @@ public class SolitaireApp extends Application {
     public static void main(String[] args) {
         launch(SolitaireApp.class, args);
     }
+
+    @Override
+    public void stop() throws Exception {
+        //TODO: Prompt for save
+        // call static in SolitaireController. ?
+        System.out.println("Sfjdsfiojdsf");
+        super.stop();
+    }
 }

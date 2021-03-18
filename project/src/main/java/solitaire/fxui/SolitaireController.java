@@ -9,6 +9,7 @@ import solitaire.model.CardStack;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -16,6 +17,8 @@ import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -28,6 +31,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.stage.StageStyle;
 
 public class SolitaireController {
 	
@@ -72,7 +76,7 @@ public class SolitaireController {
 	}
 	
 	private void resetGraphics() {
-		FinalStacks.getChildren().clear(); //TODO: Make use of when adding a bottom label
+		FinalStacks.getChildren().clear();
 		PlayStacks.getChildren().clear();
 		ThrowStack.getChildren().clear();
 
@@ -106,6 +110,7 @@ public class SolitaireController {
 		canUndo();
 		updateDeck();
 		updateThrowStack();
+		tTranslate();
 	}
 	
 	@FXML void undo() {
@@ -113,6 +118,7 @@ public class SolitaireController {
 		updateBoard();
 		Undo.setText("Redo");
 		Undo.setOnAction(e -> redo());
+		tTranslate();
 		//Undo.setAccelerator(new KeyCodeCombination(KeyCode.Y));
 	}
 	
@@ -120,6 +126,7 @@ public class SolitaireController {
 		try {board.redo();} catch (Exception e) {e.printStackTrace(); return;}
 		updateBoard();
 		canUndo();
+		tTranslate();
 	}
 	
 	private void canUndo() {
@@ -128,10 +135,29 @@ public class SolitaireController {
 		//Undo.setAccelerator(new KeyCodeCombination(KeyCode.Z));
 		Undo.setOnAction(e -> undo());
 	}
+
+	public void promptSave() { 
+		Alert askToSave = new Alert(AlertType.CONFIRMATION);
+		askToSave.setTitle("Save game");
+		askToSave.setHeaderText("Do you want to save the game?");
+		askToSave.setContentText("Your previous save file will be overwritten.");
+		askToSave.initStyle(StageStyle.UTILITY);
+		ButtonType saveButtonType = new ButtonType("Save");
+		ButtonType dontSaveButtonType = new ButtonType("Dont Save");
+
+		askToSave.getButtonTypes().setAll(saveButtonType, dontSaveButtonType);
+
+		Optional<ButtonType> result = askToSave.showAndWait();
+		if (result.get() == saveButtonType){
+			saveGame();
+		} 
+	}
 	
 	@FXML void exit() {
-		saveGame();
+		promptSave();
+		
         Platform.exit();
+		System.exit(0);
 	}
 	
 	public void saveGame() {
@@ -237,7 +263,6 @@ public class SolitaireController {
 	private void updateThrowStack() {
 		ThrowStack.getChildren().clear();
 		updateStack(t, board.getThrowStack(), ThrowStack, -1);
-		tTranslate();
 	}
 	
 	/**
@@ -265,9 +290,11 @@ public class SolitaireController {
 	private void tTranslate() {
 		/*for (Label label: t)
 			label.setTranslateX(105);*/
-		/*int tsize = t.size();
-		for (int i = tsize - 2; i < tsize && i >= 0; i++)
-			t.get(i).setTranslateX(12*(i + 3 - tsize));*/
+		int tsize = t.size();
+		for (Label l : t)
+			l.setTranslateX(0);
+		for (int i = 0; i < 3; i++)
+			t.get(i + tsize - 3).setTranslateX(12*(i));
 	}
 	
 	private void pTranslate(List<Label> l, int i) {
@@ -325,8 +352,8 @@ public class SolitaireController {
 					ImageView view = new ImageView(p[indexOfStacks].get(i).snapshot(null,null));
 					view.setY(15*(i - indexOfL));
 					//TODO: Fix scaling?
-					view.setScaleX(1.5);
-					view.setScaleY(1.5);
+					//view.setScaleX(1.5);
+					//view.setScaleY(1.5);
 					p[indexOfStacks].get(i).setVisible(false);
 					stackOfCards.getChildren().add(view);
 				}
@@ -360,7 +387,7 @@ public class SolitaireController {
 		};
 		
 	/**
-	 * Calls revalCard() on our gameboard to reveal the top card of a play stack
+	 * Calls revealCard() on our gameboard to reveal the top card of a play stack
 	 * @param event
 	 * @param stack
 	 */
@@ -499,7 +526,6 @@ public class SolitaireController {
 		try {
 			if (useInt) {
 				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + card.getFace() + card.getSuit() + ext));
-				//img = new Image((SolitaireController.class.getResourceAsStream("img/3H.png")));
 			} else {
 				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + faceVal + card.getSuit() + ext));
 			}

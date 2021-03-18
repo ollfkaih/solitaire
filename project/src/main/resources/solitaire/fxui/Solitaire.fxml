@@ -47,7 +47,7 @@
               <SeparatorMenuItem mnemonicParsing="false" />
               <MenuItem fx:id="Undo" mnemonicParsing="false" onAction="#undo" text="Undo" />
               <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem fx:id="Save" mnemonicParsing="false" onAction="#saveGame" text="Save game" />
+                  <MenuItem fx:id="Save" mnemonicParsing="false" onAction="#promptSave" text="Save game" />
                   <MenuItem fx:id="Load" mnemonicParsing="false" onAction="#loadGame" text="Load game" />
                   <SeparatorMenuItem mnemonicParsing="false" />
               <MenuItem mnemonicParsing="false" onAction="#exit" text="Exit" />
