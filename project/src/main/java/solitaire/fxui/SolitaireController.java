@@ -352,9 +352,7 @@ public class SolitaireController {
 					
 					ImageView view = new ImageView(p[indexOfStacks].get(i).snapshot(null,null));
 					view.setY(15*(i - indexOfL));
-					//TODO: Fix scaling?
-					//view.setScaleX(1.5);
-					//view.setScaleY(1.5);
+					view.setPreserveRatio(true);
 					p[indexOfStacks].get(i).setVisible(false);
 					stackOfCards.getChildren().add(view);
 				}
