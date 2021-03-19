@@ -16,10 +16,12 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -30,6 +32,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.transform.Transform;
+import javafx.stage.Screen;
 import javafx.stage.StageStyle;
 
 public class SolitaireController {
@@ -325,7 +329,6 @@ public class SolitaireController {
 	 * @param stackName
 	 */
 	private void dragDetected(MouseEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.SType stackName) {
-		Image img = null;
 
 		Dragboard db = l.startDragAndDrop(TransferMode.MOVE);
 		draggedLabel = l;
@@ -339,8 +342,17 @@ public class SolitaireController {
 	    content.putString(dbFromStack);
 	    db.setContent(content);
 	    
+		//Screen screen = Screen.getPrimary();
+		double scale = Screen.getPrimary().getOutputScaleX();
+		
+		WritableImage img;
+
+		SnapshotParameters sParam = new SnapshotParameters();
+		sParam.setTransform(Transform.scale(scale, scale));
+
 		if (ThrowStack.getChildren().contains(l) || FinalStacks.getChildren().contains(l)) {
-			img = l.snapshot(null, null);
+			img = new WritableImage((int) Math.round(l.getWidth() * scale), (int) Math.round(l.getHeight() * scale));
+			l.snapshot(sParam, img);
 			draggedLabel.setVisible(false);
 		} else {
 			Pane stackOfCards = new Pane();
@@ -350,14 +362,19 @@ public class SolitaireController {
 				if (addCards || p[indexOfStacks].get(i).equals(l)) {
 					addCards = true;
 					
-					ImageView view = new ImageView(p[indexOfStacks].get(i).snapshot(null,null));
+					ImageView view = new ImageView(p[indexOfStacks].get(i).snapshot(sParam,null));
 					view.setY(15*(i - indexOfL));
 					view.setPreserveRatio(true);
+					view.setFitHeight(p[indexOfStacks].get(i).getHeight());
+					view.setFitWidth(p[indexOfStacks].get(i).getWidth());
 					p[indexOfStacks].get(i).setVisible(false);
 					stackOfCards.getChildren().add(view);
 				}
 			}
-			img = stackOfCards.snapshot(null,null);
+			img = new WritableImage(
+				(int) Math.round(l.getWidth() * scale),
+				(int) Math.round(l.getHeight() * scale) + 15*(p[indexOfStacks].size() - indexOfL - 1));
+			stackOfCards.snapshot(sParam,img);
 		}
 	    db.setDragView(img, event.getX(), event.getY());
 	    event.consume();
