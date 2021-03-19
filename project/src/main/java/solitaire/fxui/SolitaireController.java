@@ -18,7 +18,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -60,6 +59,7 @@ public class SolitaireController {
 	
 	@FXML
 	private void initialize() {
+		//PlayStacks.getScene().getWindow().setOnCloseRequest((WindowEvent e) -> exit());
 		newGame.setAccelerator(new KeyCodeCombination(KeyCode.F2));
 		startNewGame();
 	}
@@ -141,7 +141,7 @@ public class SolitaireController {
 		askToSave.setTitle("Save game");
 		askToSave.setHeaderText("Do you want to save the game?");
 		askToSave.setContentText("Your previous save file will be overwritten.");
-		askToSave.initStyle(StageStyle.UTILITY);
+		askToSave.initStyle(StageStyle.UNDECORATED);
 		ButtonType saveButtonType = new ButtonType("Save");
 		ButtonType dontSaveButtonType = new ButtonType("Dont Save");
 
@@ -157,7 +157,7 @@ public class SolitaireController {
 		promptSave();
 		
         Platform.exit();
-		System.exit(0);
+		//System.exit(0);
 	}
 	
 	public void saveGame() {
