@@ -8,14 +8,13 @@ public interface IFileReadWrite {
 	/**
 	 * Writes a game to file
 	 * @param board The GameBoard to write
-	 * @return
 	 */
 	public void writeToFile(GameBoard board);
 	
 	/**
 	 * Loads a GameBoard from the default location.
 	 * @param name Name of the file
-	 * @return
+	 * @return Instance of GameBoard
 	 * @throws IOException
 	 */
 	public GameBoard loadGame(String name) throws IOException;

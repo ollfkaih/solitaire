@@ -338,7 +338,7 @@ public class SolitaireController {
 	    ClipboardContent content = new ClipboardContent();
 	    content.putString(dbFromStack);
 	    db.setContent(content);
-
+	    
 		if (ThrowStack.getChildren().contains(l) || FinalStacks.getChildren().contains(l)) {
 			img = l.snapshot(null, null);
 			draggedLabel.setVisible(false);
@@ -349,6 +349,7 @@ public class SolitaireController {
 			for (int i = indexOfL; i < p[indexOfStacks].size(); i++) {
 				if (addCards || p[indexOfStacks].get(i).equals(l)) {
 					addCards = true;
+					
 					ImageView view = new ImageView(p[indexOfStacks].get(i).snapshot(null,null));
 					view.setY(15*(i - indexOfL));
 					//TODO: Fix scaling?
@@ -358,7 +359,7 @@ public class SolitaireController {
 					stackOfCards.getChildren().add(view);
 				}
 			}
-			img = stackOfCards.snapshot(null, null);
+			img = stackOfCards.snapshot(null,null);
 		}
 	    db.setDragView(img, event.getX(), event.getY());
 	    event.consume();
