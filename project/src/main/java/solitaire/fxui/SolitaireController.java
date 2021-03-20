@@ -130,7 +130,7 @@ public class SolitaireController {
 		try {board.redo();} catch (Exception e) {e.printStackTrace(); return;}
 		updateBoard();
 		canUndo();
-		tTranslate();
+		//tTranslate();
 	}
 	
 	private void canUndo() {
@@ -148,7 +148,6 @@ public class SolitaireController {
 		askToSave.initStyle(StageStyle.UNDECORATED);
 		ButtonType saveButtonType = new ButtonType("Save");
 		ButtonType dontSaveButtonType = new ButtonType("Dont Save");
-
 		askToSave.getButtonTypes().setAll(saveButtonType, dontSaveButtonType);
 
 		Optional<ButtonType> result = askToSave.showAndWait();
@@ -298,7 +297,8 @@ public class SolitaireController {
 		for (Label l : t)
 			l.setTranslateX(0);
 		for (int i = 0; i < 3; i++)
-			t.get(i + tsize - 3).setTranslateX(12*(i));
+			if (tsize + i - 3 > 0)
+				t.get(i + tsize - 3).setTranslateX(12*(i));
 	}
 	
 	private void pTranslate(List<Label> l, int i) {
