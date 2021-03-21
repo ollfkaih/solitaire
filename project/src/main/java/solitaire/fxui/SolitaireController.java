@@ -2,14 +2,18 @@ package solitaire.fxui;
 
 import solitaire.model.GameBoard;
 import solitaire.model.SolConst;
+import solitaire.model.SolConst.SType;
 import solitaire.model.Card;
+import solitaire.model.CardContainer;
 import solitaire.model.CardDeck;
 import solitaire.model.CardStack;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -281,7 +285,16 @@ public class SolitaireController {
 		try {updateThrowStack();} catch (Exception e) {e.printStackTrace();} 
 		
 		System.out.println(board.toString());
-			
+		if (board.isSolved()) {
+			int i = 0;
+			Map <SolConst.SType, List<Label>> finalSMap = new TreeMap<SolConst.SType, List<Label>>();
+			for (List<Label> stack: f) {
+				finalSMap.put(SType.valueOf("F" + i), stack);
+				i++;
+			}
+			WinAnimation winAnimate = new WinAnimation(finalSMap);
+			winAnimate.runWinAnimation();
+		}
 	}
 	
 	private void fTranslate(List<Label> l, int i) {
