@@ -33,5 +33,6 @@
           </Menu>
         </menus>
       </MenuBar>
+      <AnchorPane fx:id="BottomBar" prefHeight="30.0" styleClass="bottom-bar" stylesheets="@BottomBar.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
    </children>
 </AnchorPane>

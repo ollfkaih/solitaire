@@ -18,4 +18,5 @@ public interface IFileReadWrite {
 	 * @throws IOException
 	 */
 	public GameBoard loadGame(String name) throws IOException;
+	
 }

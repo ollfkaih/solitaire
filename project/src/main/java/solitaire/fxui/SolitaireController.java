@@ -50,6 +50,7 @@ public class SolitaireController {
 	@FXML private AnchorPane FinalStacks;
 	@FXML private AnchorPane ThrowStack; 
 	@FXML private AnchorPane Deck;
+	@FXML private AnchorPane BottomBar;
 	@FXML private MenuItem newGame;
 	@FXML private MenuItem Undo;
 	
@@ -66,6 +67,7 @@ public class SolitaireController {
 	
 	private final IOController ioControl = new IOController();
 	private final static String filename = "Save";
+	private final static float cardScaler = (float) (1/3.0);
 	
 	@FXML
 	private void initialize() {
@@ -91,6 +93,11 @@ public class SolitaireController {
 		carddeck.shuffle();	
 		board = new GameBoard(carddeck);
 		resetGraphics();
+		Label statusLabel = new Label("New game started");
+		int width = windowWidth();
+		statusLabel.setTranslateX(width/35);
+		statusLabel.setTranslateY(5);
+		BottomBar.getChildren().add(statusLabel);
 	}
 	
 	private void resetGraphics() {
@@ -307,6 +314,9 @@ public class SolitaireController {
 		}
 	}
 	
+	/**
+	 * @return the width of the current window in pixels
+	 */
 	private int windowWidth() {
 		int width = (int) Root.getWidth();
 		if (width <= 0)
@@ -314,7 +324,24 @@ public class SolitaireController {
 		return width;
 	}
 	
+	/**
+	 * @return the height of the current window in pixels
+	 */
+	/*private int windowHeight() {
+		int height = (int) Root.getHeight();
+		if (height <= 0)
+			height = (int) Root.getPrefHeight();
+		return height;
+	}*/
+	
+	/**
+	 * Translates the final stacks to correct position
+	 * @param l List of labels that represents a final stack
+	 * @param i the number 
+	 */
 	private void fTranslate(List<Label> l, int i) {
+		if (i < 0 || i >= SolConst.SUITS)
+			throw new IllegalArgumentException("The index of the final stack must be between 0 and " + (SolConst.SUITS - 1));
 		int width = windowWidth();
 		int xOffset =  3*width/7 + width/120;
 		float xFactor = (float) (width/7.35);
@@ -524,8 +551,8 @@ public class SolitaireController {
 		try {
 			img = new Image(SolitaireController.class.getResourceAsStream(imgDir + imgName + ext));
 			view = new ImageView(img);
-			view.setFitHeight(img.getHeight()/3);
-			view.setFitWidth(img.getWidth()/3);
+			view.setFitHeight(img.getHeight()*cardScaler);
+			view.setFitWidth(img.getWidth()*cardScaler);
 			stack.setGraphic(view);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -546,56 +573,15 @@ public class SolitaireController {
 		Image img;
 		ImageView view;
 		try {
-			img = cardToImg(card);
+			img = IOController.getImage(card);
 			view = new ImageView(img);
-			view.setFitHeight(img.getHeight()/3);
-			view.setFitWidth(img.getWidth()/3);
+			view.setFitHeight(img.getHeight()*cardScaler);
+			view.setFitWidth(img.getWidth()*cardScaler);
 			stack.setGraphic(view);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 	return true;
-	}
-
-	/**
-	 * This function takes a Card parameter and returns the appropriate image file.
-	 * @param card
-	 * @return
-	 */
-	private static Image cardToImg(Card card) {
-		String imgDir = SolConst.IMGDIR;
-		String ext = ".png";
-		Image img;
-		
-		boolean useInt = false;
-		char faceVal = 0;
-		switch (card.getFace()) {
-		case 2,3,4,5,6,7,8,9 -> {
-				useInt = true;
-			}
-		case 1  -> faceVal = 'A';
-		case 10 -> faceVal = 'T';
-		case 11 -> faceVal = 'J';
-		case 12 -> faceVal = 'Q';
-		case 13 -> faceVal = 'K';
-		default -> throw new IllegalArgumentException("Illegal card");
-		}
-		
-		try {
-			if (useInt) {
-				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + card.getFace() + card.getSuit() + ext));
-			} else {
-				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + faceVal + card.getSuit() + ext));
-			}
-			return img;
-		} catch (NullPointerException e) {
-			e.printStackTrace();
-			System.out.println("Could not get card face");
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("HUH? Error getting cardImage");
-		}
-		return null;
 	}
 }

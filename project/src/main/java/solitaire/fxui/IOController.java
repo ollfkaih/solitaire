@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.TreeMap;
 
+import javafx.scene.image.Image;
+
 public class IOController implements IFileReadWrite {
 	
 	public final static String SAVEEXT = "sol";
@@ -91,4 +93,45 @@ public class IOController implements IFileReadWrite {
         }
         return board;
     }
+
+	/**
+	 * This function takes a Card parameter and returns the appropriate image file.
+	 * @param card
+	 * @return
+	 */
+	public static Image getImage(Card card) {
+		String imgDir = SolConst.IMGDIR;
+		String ext = ".png";
+		Image img;
+		
+		boolean useInt = false;
+		char faceVal = 0;
+		switch (card.getFace()) {
+		case 2,3,4,5,6,7,8,9 -> {
+				useInt = true;
+			}
+		case 1  -> faceVal = 'A';
+		case 10 -> faceVal = 'T';
+		case 11 -> faceVal = 'J';
+		case 12 -> faceVal = 'Q';
+		case 13 -> faceVal = 'K';
+		default -> throw new IllegalArgumentException("Illegal card");
+		}
+		
+		try {
+			if (useInt) {
+				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + card.getFace() + card.getSuit() + ext));
+			} else {
+				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + faceVal + card.getSuit() + ext));
+			}
+			return img;
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+			System.out.println("Could not get card face");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("HUH? Error getting cardImage");
+		}
+		return null;
+	}
 }
