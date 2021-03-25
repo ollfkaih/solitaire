@@ -4,7 +4,6 @@ import solitaire.model.GameBoard;
 import solitaire.model.SolConst;
 import solitaire.model.SolConst.SType;
 import solitaire.model.Card;
-import solitaire.model.CardContainer;
 import solitaire.model.CardDeck;
 import solitaire.model.CardStack;
 
@@ -23,6 +22,7 @@ import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -35,6 +35,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.transform.Transform;
 import javafx.stage.Screen;
@@ -44,6 +45,7 @@ public class SolitaireController {
 	
 	private GameBoard board;
 	@FXML private AnchorPane Root;
+	@FXML private GridPane GridRoot;
 	@FXML private AnchorPane PlayStacks;
 	@FXML private AnchorPane FinalStacks;
 	@FXML private AnchorPane ThrowStack; 
@@ -63,13 +65,21 @@ public class SolitaireController {
 	boolean initpStacks;
 	
 	private final IOController ioControl = new IOController();
-	private String filename = "Save";
+	private final static String filename = "Save";
 	
 	@FXML
 	private void initialize() {
-		//PlayStacks.getScene().getWindow().setOnCloseRequest((WindowEvent e) -> exit());
 		newGame.setAccelerator(new KeyCodeCombination(KeyCode.F2));
+		//Undo.setAccelerator(new KeyCodeCombination(KeyCode.Z));
 		startNewGame();
+		
+		Root.widthProperty().addListener(e -> {
+			for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) 
+				pTranslate(p[i],i);
+			for (int i = 0; i < SolConst.SUITS; i++)
+				fTranslate(f[i], i);
+			deckTranslate();
+		});
 	}
 	
 	/**
@@ -87,7 +97,7 @@ public class SolitaireController {
 		FinalStacks.getChildren().clear();
 		PlayStacks.getChildren().clear();
 		ThrowStack.getChildren().clear();
-
+		
 		Undo.setText("Undo");
 		Undo.setOnAction(e -> undo());
 		Undo.setDisable(true);
@@ -105,7 +115,7 @@ public class SolitaireController {
 		
 		cDeck = new Label(null);
 		Deck.getChildren().add(cDeck);
-		cDeck.setTranslateX(20);
+		//Deck.setTranslateX(20);
 		setCustomImage(cDeck, 'b');
 		updateBoard();
 	}
@@ -118,7 +128,7 @@ public class SolitaireController {
 		canUndo();
 		updateDeck();
 		updateThrowStack();
-		tTranslate();
+		deckTranslate();
 	}
 	
 	@FXML void undo() {
@@ -126,7 +136,7 @@ public class SolitaireController {
 		updateBoard();
 		Undo.setText("Redo");
 		Undo.setOnAction(e -> redo());
-		tTranslate();
+		deckTranslate();
 		//Undo.setAccelerator(new KeyCodeCombination(KeyCode.Y));
 	}
 	
@@ -146,12 +156,12 @@ public class SolitaireController {
 
 	public void promptSave() { 
 		Alert askToSave = new Alert(AlertType.CONFIRMATION);
-		askToSave.setTitle("Save game");
+		askToSave.setTitle("Solitaire");
 		askToSave.setHeaderText("Do you want to save the game?");
 		askToSave.setContentText("Your previous save file will be overwritten.");
-		askToSave.initStyle(StageStyle.UNDECORATED);
-		ButtonType saveButtonType = new ButtonType("Save");
-		ButtonType dontSaveButtonType = new ButtonType("Dont Save");
+		askToSave.initStyle(StageStyle.UTILITY);
+		ButtonType saveButtonType = new ButtonType("Save", ButtonData.YES);
+		ButtonType dontSaveButtonType = new ButtonType("Dont Save", ButtonData.CANCEL_CLOSE);
 		askToSave.getButtonTypes().setAll(saveButtonType, dontSaveButtonType);
 
 		Optional<ButtonType> result = askToSave.showAndWait();
@@ -162,8 +172,7 @@ public class SolitaireController {
 	
 	@FXML void exit() {
 		promptSave();
-		
-        Platform.exit();
+		Platform.exit();
 		//System.exit(0);
 	}
 	
@@ -270,6 +279,7 @@ public class SolitaireController {
 	private void updateThrowStack() {
 		ThrowStack.getChildren().clear();
 		updateStack(t, board.getThrowStack(), ThrowStack, -1);
+		t.get(t.size() - 1).setOnDragDetected(((MouseEvent event) -> dragDetected(event, t.get(t.size() - 1), -1, t.size() - 2, SolConst.SType.THROWSTACK)));
 	}
 	
 	/**
@@ -297,15 +307,31 @@ public class SolitaireController {
 		}
 	}
 	
-	private void fTranslate(List<Label> l, int i) {
-		for (Label label : l)
-			label.setTranslateX(85*i); 
-		//l.setTranslateY(30);
+	private int windowWidth() {
+		int width = (int) Root.getWidth();
+		if (width <= 0)
+			width = (int) Root.getPrefWidth();
+		return width;
 	}
 	
-	private void tTranslate() {
-		/*for (Label label: t)
-			label.setTranslateX(105);*/
+	private void fTranslate(List<Label> l, int i) {
+		int width = windowWidth();
+		int xOffset =  3*width/7 + width/120;
+		float xFactor = (float) (width/7.35);
+		
+		FinalStacks.setTranslateX(xOffset);
+		
+		for (Label label : l)
+			label.setTranslateX(xFactor*i);
+	}
+	
+	private void deckTranslate() {	
+		int width = windowWidth();
+		int xOffset = (int) (width/35);
+		float xFactor = (float) (width/7.35);
+		ThrowStack.setTranslateX(Math.round(xOffset + xFactor));
+		Deck.setTranslateX(xOffset);
+		
 		int tsize = t.size();
 		for (Label l : t)
 			l.setTranslateX(0);
@@ -315,11 +341,15 @@ public class SolitaireController {
 	}
 	
 	private void pTranslate(List<Label> l, int i) {
-		l.get(0).setTranslateX(20 + 85*i);
+		int width = windowWidth();
+		int xOffset = (int) (width/35);
+		float xFactor = (float) (width/7.35);
+		//System.out.println((float) GridRoot.getPrefWidth());
+		l.get(0).setTranslateX(Math.round(xOffset + xFactor*i));
 		int yOffset = 0;
 		
 		for (int j = 1; j < l.size(); j++) {
-			l.get(j).setTranslateX(20 + 85*i);
+			l.get(j).setTranslateX(Math.round(xOffset + xFactor*i));
 			
 			if (j == 1) 
 				l.get(1).setTranslateY(yOffset = 0);
