@@ -15,18 +15,18 @@ public class SolitaireApp extends Application {
     	loader.load();
     	stage.setTitle("Solitaire"); //fallback
         stage.setScene(new Scene(loader.getRoot()));
-        //TODO: Make resizable if stacks reposition code is added
+        //TODO: Remove
         //stage.setResizable(false);
         stage.show();	
         stage.setOnCloseRequest(e -> {
 			try {
-				//TODO: Uncommennt
+				//TODO: Uncomment
 				//appExit();
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		});
-        stage.setMinHeight(480 + 40 - 10); //TODO: Review (Root height + menubar and empty height)
+        stage.setMinHeight(480 + 40 + 30 - 10); //TODO: Review (Root height + menubar, bottom bar and empty height)
         stage.setMinWidth(600);
     }
 

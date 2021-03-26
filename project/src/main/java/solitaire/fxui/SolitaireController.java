@@ -53,13 +53,9 @@ public class SolitaireController {
 	@FXML private AnchorPane BottomBar;
 	@FXML private MenuItem newGame;
 	@FXML private MenuItem Undo;
+	@FXML private MenuBar menubar;
 	
-	@SuppressWarnings("unchecked")
-	private List<Label>[] p = (List<Label>[]) new ArrayList[SolConst.PLAYSTACKSNUM];
-	@SuppressWarnings("unchecked")
-	private List<Label>[] f = (List<Label>[]) new ArrayList[SolConst.SUITS];
-	private List<Label> t;
-	private Label cDeck;
+	private Map<SolConst.SType, List<Label>> labels = new TreeMap<>();
 	private Label draggedLabel;
 	private Label dropLabel;
 	private CardStack dragParent;
@@ -69,6 +65,19 @@ public class SolitaireController {
 	private final static String filename = "Save";
 	private final static float cardScaler = (float) (1/3.0);
 	
+	private List<Label> getFinalLabelStack(int i) {
+		return labels.get(SType.valueOf("F" + i));
+	}	
+	private List<Label> getPlayLabelStack(int i) {
+		return labels.get(SType.valueOf("P" + i));
+	}	
+	private List<Label> getThrowLabelStack() {
+		return  labels.get(SType.THROWSTACK);
+	}	
+	private List<Label> getLabelDeck() {
+		return labels.get(SType.DECK);
+	}
+
 	@FXML
 	private void initialize() {
 		newGame.setAccelerator(new KeyCodeCombination(KeyCode.F2));
@@ -77,9 +86,9 @@ public class SolitaireController {
 		
 		Root.widthProperty().addListener(e -> {
 			for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) 
-				pTranslate(p[i],i);
+				pTranslate(getPlayLabelStack(i),i);
 			for (int i = 0; i < SolConst.SUITS; i++)
-				fTranslate(f[i], i);
+				fTranslate(getFinalLabelStack(i), i);
 			deckTranslate();
 		});
 	}
@@ -92,7 +101,11 @@ public class SolitaireController {
 		CardDeck carddeck = new CardDeck(SolConst.CARDSINSUIT);
 		carddeck.shuffle();	
 		board = new GameBoard(carddeck);
-		resetGraphics();
+		
+		//TODO: REMOVE TO NOT AUTOLOAD
+		loadGame();
+		
+		resetBoardLabels();
 		Label statusLabel = new Label("New game started");
 		int width = windowWidth();
 		statusLabel.setTranslateX(width/35);
@@ -100,7 +113,7 @@ public class SolitaireController {
 		BottomBar.getChildren().add(statusLabel);
 	}
 	
-	private void resetGraphics() {
+	private void resetBoardLabels() {
 		FinalStacks.getChildren().clear();
 		PlayStacks.getChildren().clear();
 		ThrowStack.getChildren().clear();
@@ -109,21 +122,22 @@ public class SolitaireController {
 		Undo.setOnAction(e -> undo());
 		Undo.setDisable(true);
 		
-		for (int i = 0; i < SolConst.SUITS; i++) {
-			f[i] = new ArrayList<>();
-			//FinalStacks.getChildren().add(f[i]);
-		}
+		for (int i = 0; i < SolConst.SUITS; i++) 
+			labels.put(SType.valueOf("F" + i), new ArrayList<Label>());
+		//TODO: REMove ?
 		initpStacks = true;
-		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
-			p[i] = new ArrayList<>();
-		}
-
-		t = new ArrayList<>();
+		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) 
+			labels.put(SType.valueOf("P" + i), new ArrayList<Label>());
 		
-		cDeck = new Label(null);
-		Deck.getChildren().add(cDeck);
+		labels.put(SType.THROWSTACK, new ArrayList<Label>()); 
+		
+		labels.put(SType.DECK, new ArrayList<Label>());
+		if (getLabelDeck().size() == 0 || getLabelDeck().size() > 1)
+			getLabelDeck().clear();
+			getLabelDeck().add(new Label(null));
+		Deck.getChildren().add(getLabelDeck().get(0));
 		//Deck.setTranslateX(20);
-		setCustomImage(cDeck, 'b');
+		setCustomImage(getLabelDeck().get(0), 'b');
 		updateBoard();
 	}
 	
@@ -194,7 +208,7 @@ public class SolitaireController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		resetGraphics();
+		resetBoardLabels();
 	}
 
 	/**
@@ -202,9 +216,9 @@ public class SolitaireController {
 	 */
 	private void updateDeck() {
 		if (board.drawStackEmpty()) {
-			setCustomImage(cDeck,'e');
+			setCustomImage(getLabelDeck().get(0),'e');
 		} else {
-			setCustomImage(cDeck,'b');
+			setCustomImage(getLabelDeck().get(0),'b');
 		}
 	}
 	
@@ -220,7 +234,6 @@ public class SolitaireController {
 	    stackLabels.get(0).setUserData(targetStack);
 		stackLabels.get(0).setOnDragOver(dragOverEvent);
     	stackLabels.get(0).setOnDragDone(dragDoneEvent);
-    	//int thisIndexi = i;
     	stackLabels.get(0).setOnDragDropped((DragEvent event) -> drop(event, stackLabels.get(0), i, 0, stack.getStackName()));
 		
 		for (int labelIndex = 1; labelIndex <= stack.getCardCount(); labelIndex++) {
@@ -268,8 +281,8 @@ public class SolitaireController {
 	void updatePlayStacks() {
 		PlayStacks.getChildren().clear();
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
-			updateStack(p[i], board.getPlayStack(i), PlayStacks, i);
-			pTranslate(p[i], i);
+			updateStack(getPlayLabelStack(i), board.getPlayStack(i), PlayStacks, i);
+			pTranslate(getPlayLabelStack(i), i);
 		}
 	}
 	/**
@@ -278,15 +291,16 @@ public class SolitaireController {
 	private void updateFinalStacks() {
 		FinalStacks.getChildren().clear();
 		for (int i = 0; i < SolConst.SUITS; i++) {
-			updateStack(f[i], board.getFinalStack(i), FinalStacks, i);
-			fTranslate(f[i], i);
+			updateStack(getFinalLabelStack(i), board.getFinalStack(i), FinalStacks, i);
+			fTranslate(getFinalLabelStack(i), i);
 		}
 	}
 
 	private void updateThrowStack() {
 		ThrowStack.getChildren().clear();
-		updateStack(t, board.getThrowStack(), ThrowStack, -1);
-		t.get(t.size() - 1).setOnDragDetected(((MouseEvent event) -> dragDetected(event, t.get(t.size() - 1), -1, t.size() - 2, SolConst.SType.THROWSTACK)));
+		List<Label> tLabels = getThrowLabelStack();
+		updateStack(tLabels, board.getThrowStack(), ThrowStack, -1);
+		tLabels.get(tLabels.size() - 1).setOnDragDetected(((MouseEvent event) -> dragDetected(event, tLabels.get(tLabels.size() - 1), -1, tLabels.size() - 2, SolConst.SType.THROWSTACK)));
 	}
 	
 	/**
@@ -303,14 +317,29 @@ public class SolitaireController {
 		
 		System.out.println(board.toString());
 		if (board.isSolved()) {
-			int i = 0;
-			Map <SolConst.SType, List<Label>> finalSMap = new TreeMap<SolConst.SType, List<Label>>();
-			for (List<Label> stack: f) {
-				finalSMap.put(SType.valueOf("F" + i), stack);
-				i++;
-			}
-			WinAnimation winAnimate = new WinAnimation(finalSMap);
-			winAnimate.runWinAnimation();
+			Undo.setDisable(true);
+			//TODO: Change so it can be enabled again;
+			menubar.setDisable(true);
+
+			Deck.setOnMouseClicked(null);
+			labels.forEach((key, list) -> list.get(list.size() - 1).setOnDragDetected(null));
+			labels.entrySet().removeIf(c -> c.getKey().toString().charAt(0) != 'F');
+			labels.forEach((k, list) -> {
+				for (Label l: list) {
+					l.setOnMouseClicked(null);
+					l.setOnDragDetected(null);
+					double posX = l.getParent().getTranslateX() + l.getTranslateX();
+					l.setTranslateX(0);
+					
+					//Make sure the remaining cards parent is root, so we can use getParent in winAnimate to get window size
+					Root.getChildren().add(l);
+					l.relocate(posX, 40);
+				}
+			});
+			FinalStacks.getChildren().clear();
+			
+			WinAnimation winAnimate = new WinAnimation(labels/*, windowWidth()*/);
+			winAnimate.start();
 		}
 	}
 	
@@ -327,12 +356,12 @@ public class SolitaireController {
 	/**
 	 * @return the height of the current window in pixels
 	 */
-	/*private int windowHeight() {
+	private int windowHeight() {
 		int height = (int) Root.getHeight();
 		if (height <= 0)
 			height = (int) Root.getPrefHeight();
 		return height;
-	}*/
+	}
 	
 	/**
 	 * Translates the final stacks to correct position
@@ -359,19 +388,18 @@ public class SolitaireController {
 		ThrowStack.setTranslateX(Math.round(xOffset + xFactor));
 		Deck.setTranslateX(xOffset);
 		
-		int tsize = t.size();
-		for (Label l : t)
+		int tsize = getThrowLabelStack().size();
+		for (Label l : getThrowLabelStack())
 			l.setTranslateX(0);
 		for (int i = 0; i < 3; i++)
 			if (tsize + i - 3 > 0)
-				t.get(i + tsize - 3).setTranslateX(12*(i));
+				getThrowLabelStack().get(i + tsize - 3).setTranslateX(12*(i));
 	}
 	
 	private void pTranslate(List<Label> l, int i) {
 		int width = windowWidth();
 		int xOffset = (int) (width/35);
 		float xFactor = (float) (width/7.35);
-		//System.out.println((float) GridRoot.getPrefWidth());
 		l.get(0).setTranslateX(Math.round(xOffset + xFactor*i));
 		int yOffset = 0;
 		
@@ -427,23 +455,23 @@ public class SolitaireController {
 		} else {
 			Pane stackOfCards = new Pane();
 			boolean addCards = false;
-			int indexOfL = p[indexOfStacks].indexOf(l);
-			for (int i = indexOfL; i < p[indexOfStacks].size(); i++) {
-				if (addCards || p[indexOfStacks].get(i).equals(l)) {
+			int indexOfL = getPlayLabelStack(indexOfStacks).indexOf(l);
+			for (int i = indexOfL; i < getPlayLabelStack(indexOfStacks).size(); i++) {
+				if (addCards || getPlayLabelStack(indexOfStacks).get(i).equals(l)) {
 					addCards = true;
 					
-					ImageView view = new ImageView(p[indexOfStacks].get(i).snapshot(sParam,null));
+					ImageView view = new ImageView(getPlayLabelStack(indexOfStacks).get(i).snapshot(sParam,null));
 					view.setY(15*(i - indexOfL));
 					view.setPreserveRatio(true);
-					view.setFitHeight(p[indexOfStacks].get(i).getHeight());
-					view.setFitWidth(p[indexOfStacks].get(i).getWidth());
-					p[indexOfStacks].get(i).setVisible(false);
+					view.setFitHeight(getPlayLabelStack(indexOfStacks).get(i).getHeight());
+					view.setFitWidth(getPlayLabelStack(indexOfStacks).get(i).getWidth());
+					getPlayLabelStack(indexOfStacks).get(i).setVisible(false);
 					stackOfCards.getChildren().add(view);
 				}
 			}
 			img = new WritableImage(
 				(int) Math.round(l.getWidth() * scale),
-				(int) Math.round(l.getHeight() * scale) + 15*(p[indexOfStacks].size() - indexOfL - 1));
+				(int) Math.round(l.getHeight() * scale) + 15*(getPlayLabelStack(indexOfStacks).size() - indexOfL - 1));
 			stackOfCards.snapshot(sParam,img);
 		}
 	    db.setDragView(img, event.getX(), event.getY());

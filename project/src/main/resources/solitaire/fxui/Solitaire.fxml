@@ -10,9 +10,9 @@
    <children>
       <AnchorPane fx:id="ThrowStack" prefHeight="121.0" prefWidth="85.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="40.0" />
       <AnchorPane fx:id="FinalStacks" maxWidth="-Infinity" prefHeight="121.0" prefWidth="350.0" AnchorPane.topAnchor="40.0" />
-            <AnchorPane fx:id="PlayStacks" prefHeight="319.0" prefWidth="650.0" AnchorPane.bottomAnchor="0.0" />
+            <AnchorPane fx:id="PlayStacks" prefHeight="319.0" prefWidth="650.0" AnchorPane.topAnchor="161.0" />
       <AnchorPane fx:id="Deck" onMouseClicked="#clickDeck" prefHeight="121.0" prefWidth="65.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="40.0" />
-      <MenuBar id="menubar" maxHeight="25.0" maxWidth="Infinity" prefHeight="25.0" prefWidth="640.0" stylesheets="@MenuBar.css" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+      <MenuBar fx:id="menubar" id="menubar" maxHeight="25.0" maxWidth="Infinity" prefHeight="25.0" prefWidth="640.0" stylesheets="@MenuBar.css" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
         <menus>
           <Menu mnemonicParsing="false" text="_Game">
             <items>
