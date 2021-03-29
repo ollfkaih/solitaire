@@ -114,6 +114,7 @@ public class SolitaireController {
 	}
 	
 	private void resetBoardLabels() {
+		Root.getChildren().removeIf(e -> e.getClass() == ImageView.class);
 		FinalStacks.getChildren().clear();
 		PlayStacks.getChildren().clear();
 		ThrowStack.getChildren().clear();
@@ -328,7 +329,7 @@ public class SolitaireController {
 				for (Label l: list) {
 					l.setOnMouseClicked(null);
 					l.setOnDragDetected(null);
-					double posX = l.getParent().getTranslateX() + l.getTranslateX();
+					double posX = l.getParent().getLayoutX() + l.getTranslateX();
 					l.setTranslateX(0);
 					
 					//Make sure the remaining cards parent is root, so we can use getParent in winAnimate to get window size
@@ -338,7 +339,13 @@ public class SolitaireController {
 			});
 			FinalStacks.getChildren().clear();
 			
-			WinAnimation winAnimate = new WinAnimation(labels/*, windowWidth()*/);
+			WinAnimation winAnimate = new WinAnimation(labels, Root, Root.getChildren().size());
+			//TODO: research animation stop
+			menubar.setOnMouseClicked(e -> winAnimate.stop());
+			newGame.setOnAction(e -> {
+				winAnimate.stop();
+				startNewGame();
+			});
 			winAnimate.start();
 		}
 	}
@@ -356,13 +363,13 @@ public class SolitaireController {
 	/**
 	 * @return the height of the current window in pixels
 	 */
-	private int windowHeight() {
+	/*private int windowHeight() {
 		int height = (int) Root.getHeight();
 		if (height <= 0)
 			height = (int) Root.getPrefHeight();
 		return height;
 	}
-	
+	*/
 	/**
 	 * Translates the final stacks to correct position
 	 * @param l List of labels that represents a final stack
@@ -375,7 +382,7 @@ public class SolitaireController {
 		int xOffset =  3*width/7 + width/120;
 		float xFactor = (float) (width/7.35);
 		
-		FinalStacks.setTranslateX(xOffset);
+		FinalStacks.setLayoutX(xOffset);
 		
 		for (Label label : l)
 			label.setTranslateX(xFactor*i);
