@@ -162,7 +162,11 @@ public class WinAnimation extends AnimationTimer{
 		vyprev = 0;
 		if (stackIndex >= 0 && stackIndex < 4) {
 			Label l = finalLabels.get(SType.valueOf("F" + stackIndex)).get(cardValue);
-			img = new WritableImage((int) l.getWidth(), (int) l.getHeight());
+			try {
+				img = new WritableImage((int) l.getWidth(), (int) l.getHeight());
+			} catch (IllegalArgumentException e) {
+				img = new WritableImage(80,105);
+			}
 			l.snapshot(null, img);
 		}
 		if (cardValue > 0)

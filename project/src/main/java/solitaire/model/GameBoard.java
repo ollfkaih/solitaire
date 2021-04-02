@@ -52,8 +52,20 @@ public class GameBoard {
 			if (cardCount > SolConst.CARDSINSUIT + ((CardStack) e.getValue()).getHiddenCards())
 				throw new IllegalArgumentException("The stack map contains stacks that are too big");
 		});
-		//TODO: Less than 52 cards
-		// map.values().stream().collect(Collectors.toCollection(ArrayList::new)).;
+		int sum = 0;
+		CardStack allCardsOfGame = new CardStack(null);
+		for (CardContainer stack: map.values()) {
+			sum += stack.getCardCount();
+			for (Card card : stack) {
+				for (Card c2 : allCardsOfGame) {
+					if (card.equals(c2))
+						throw new IllegalArgumentException("Duplicate cards in file");
+				}
+				allCardsOfGame.addCard(card);
+			}
+		}
+		if (sum != SolConst.SUITS * SolConst.CARDSINSUIT)
+			throw new IllegalArgumentException("Wrong number of cards in stack: ");
 		this.stacks = map;
 	}
 

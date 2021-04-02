@@ -3,7 +3,7 @@
   <groupId>tdt4100-v2021</groupId>
   <artifactId>project</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>TDT4100-Project</name>
+  <name>Solitaire</name>
   <packaging>jar</packaging>
   
   <dependencies>

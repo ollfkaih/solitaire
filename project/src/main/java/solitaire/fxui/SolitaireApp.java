@@ -15,8 +15,6 @@ public class SolitaireApp extends Application {
     	loader.load();
     	stage.setTitle("Solitaire"); //fallback
         stage.setScene(new Scene(loader.getRoot()));
-        //TODO: Remove
-        //stage.setResizable(false);
         stage.show();	
         stage.setOnCloseRequest(e -> {
 			try {

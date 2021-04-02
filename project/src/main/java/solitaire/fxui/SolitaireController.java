@@ -58,7 +58,7 @@ public class SolitaireController {
 	private Map<SolConst.SType, List<Label>> labels = new TreeMap<>();
 	private Label draggedLabel;
 	private Label dropLabel;
-	private CardStack dragParent;
+	private CardStack dragParentCardStack;
 	boolean initpStacks;
 	
 	private final IOController ioControl = new IOController();
@@ -249,7 +249,6 @@ public class SolitaireController {
 			if (! stack.isHidden(cardIndex)) {
 				Card card = stack.get(cardIndex);
 				setCardImage(stackLabels.get(labelIndex), card);
-				
 				if (stack.getStackName().toString().charAt(0) != 'T' || stack.indexOf(card) == stack.getCardCount() - 1) {
 					stackLabels.get(labelIndex).setOnDragDetected((MouseEvent event) -> dragDetected(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
 	    			stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> doubleClickCard(event, stack.get(cardIndex), stack));
@@ -260,7 +259,6 @@ public class SolitaireController {
 					stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> revealCard(event, stack));
 			}
 	    	stackLabels.get(labelIndex).setOnDragDone(dragDoneEvent);
-
 			if (stack.getStackName().toString().charAt(0) != 'T') {
 				stackLabels.get(labelIndex).setOnDragOver(dragOverEvent);
 				//All cards should be droptargets; if you drop a card on a hidden card, the drop() method attempts to put it at the top of this stack
@@ -268,12 +266,10 @@ public class SolitaireController {
 			}
 	    	LabelParent.getChildren().add(stackLabels.get(labelIndex));
 		}
-		
 		for (int labelIndex = stack.getCardCount() + 1; labelIndex < stackLabels.size(); ) {
 			LabelParent.getChildren().remove(stackLabels.get(labelIndex));
 			stackLabels.remove(labelIndex);
 		}
-		
 	}
 
 	/**
@@ -309,8 +305,6 @@ public class SolitaireController {
 	 * sets the correct card in each final stack and updates the drawing and throw stack.
 	 */
 	void updateBoard() {
-		//TODO: loop through only neccessary cards and stacks
-		
 		try {updatePlayStacks();} catch (Exception e) {e.printStackTrace();}
 		try {updateFinalStacks();} catch (Exception e) {e.printStackTrace();}
 		try {updateDeck();} catch (Exception e) {e.printStackTrace();}
@@ -434,30 +428,27 @@ public class SolitaireController {
 	 * @param stackName
 	 */
 	private void dragDetected(MouseEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.SType stackName) {
-
+		WritableImage img;
 		Dragboard db = l.startDragAndDrop(TransferMode.MOVE);
+		double scale = Screen.getPrimary().getOutputScaleX();
+		SnapshotParameters snapshotParameters = new SnapshotParameters();
+		snapshotParameters.setTransform(Transform.scale(scale, scale));
 		draggedLabel = l;
 		//l.setCursor(Cursor.NONE);
-		
-		dragParent = (CardStack) board.getStackbyName(stackName);
-		
+		dragParentCardStack = (CardStack) board.getStackbyName(stackName);
 		String dbFromStack = "" + ((char) (stackName.toString().charAt(0))) + indexOfStacks + indexOfList;
-
 	    ClipboardContent content = new ClipboardContent();
 	    content.putString(dbFromStack);
 	    db.setContent(content);
-	    
-		//Screen screen = Screen.getPrimary();
-		double scale = Screen.getPrimary().getOutputScaleX();
-		
-		WritableImage img;
 
-		SnapshotParameters sParam = new SnapshotParameters();
-		sParam.setTransform(Transform.scale(scale, scale));
-
+		for (Map.Entry<SolConst.SType, List<Label>> labellist : labels.entrySet()) {
+			String key = labellist.getKey().toString();
+			System.out.println(key);
+		}
+	 
 		if (ThrowStack.getChildren().contains(l) || FinalStacks.getChildren().contains(l)) {
 			img = new WritableImage((int) Math.round(l.getWidth() * scale), (int) Math.round(l.getHeight() * scale));
-			l.snapshot(sParam, img);
+			l.snapshot(snapshotParameters, img);
 			draggedLabel.setVisible(false);
 		} else {
 			Pane stackOfCards = new Pane();
@@ -467,7 +458,7 @@ public class SolitaireController {
 				if (addCards || getPlayLabelStack(indexOfStacks).get(i).equals(l)) {
 					addCards = true;
 					
-					ImageView view = new ImageView(getPlayLabelStack(indexOfStacks).get(i).snapshot(sParam,null));
+					ImageView view = new ImageView(getPlayLabelStack(indexOfStacks).get(i).snapshot(snapshotParameters,null));
 					view.setY(15*(i - indexOfL));
 					view.setPreserveRatio(true);
 					view.setFitHeight(getPlayLabelStack(indexOfStacks).get(i).getHeight());
@@ -479,7 +470,7 @@ public class SolitaireController {
 			img = new WritableImage(
 				(int) Math.round(l.getWidth() * scale),
 				(int) Math.round(l.getHeight() * scale) + 15*(getPlayLabelStack(indexOfStacks).size() - indexOfL - 1));
-			stackOfCards.snapshot(sParam,img);
+			stackOfCards.snapshot(snapshotParameters,img);
 		}
 	    db.setDragView(img, event.getX(), event.getY());
 	    event.consume();
@@ -522,7 +513,6 @@ public class SolitaireController {
 		Dragboard db = event.getDragboard();
 		if (!db.hasString()) throw new IllegalArgumentException("The dragboard is empty for " + event.getSource());
 		dropLabel = l;
-		//TODO: More efficient? 
 		for (Node label : PlayStacks.getChildren())
 			label.setVisible(true);
 		draggedLabel.setVisible(true);
@@ -540,9 +530,9 @@ public class SolitaireController {
 
 		switch (targetStack) {
 		case 'p' -> {
-			board.moveCard(inStackIndex, dragParent, board.getPlayStack(indexOfStacks));
+			board.moveCard(inStackIndex, dragParentCardStack, board.getPlayStack(indexOfStacks));
 		} case 'f' -> {
-			board.moveCard(inStackIndex, dragParent, board.getFinalStack(indexOfStacks));
+			board.moveCard(inStackIndex, dragParentCardStack, board.getFinalStack(indexOfStacks));
 		}
 		}
 		canUndo();
