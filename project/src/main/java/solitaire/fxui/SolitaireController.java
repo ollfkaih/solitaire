@@ -3,6 +3,8 @@ package solitaire.fxui;
 import solitaire.model.GameBoard;
 import solitaire.model.SolConst;
 import solitaire.model.SolConst.SType;
+import solitaire.logging.ILogger;
+import solitaire.logging.LabelLogger;
 import solitaire.model.Card;
 import solitaire.model.CardDeck;
 import solitaire.model.CardStack;
@@ -36,6 +38,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.transform.Transform;
 import javafx.stage.Screen;
@@ -50,7 +53,7 @@ public class SolitaireController {
 	@FXML private AnchorPane FinalStacks;
 	@FXML private AnchorPane ThrowStack; 
 	@FXML private AnchorPane Deck;
-	@FXML private AnchorPane BottomBar;
+	@FXML private HBox BottomBar;
 	@FXML private MenuItem newGame;
 	@FXML private MenuItem Undo;
 	@FXML private MenuBar menubar;
@@ -61,7 +64,8 @@ public class SolitaireController {
 	private CardStack dragParentCardStack;
 	boolean initpStacks;
 	
-	private final IOController ioControl = new IOController();
+	private LabelLogger labelLogger;
+	private final IOController ioController = new IOController();
 	private final static String filename = "Save";
 	private final static float cardScaler = (float) (1/3.0);
 	
@@ -106,11 +110,14 @@ public class SolitaireController {
 		loadGame();
 		
 		resetBoardLabels();
-		Label statusLabel = new Label("New game started");
+		//TODO: Use distributive logger, log error and info to status bar, but warning (e.g. "card cannot be moved here") to file
+		labelLogger = new LabelLogger(BottomBar);
+		labelLogger.log(ILogger.ERROR, "New game started", null);
+		/*Label statusLabel = new Label("New game started");
 		int width = windowWidth();
 		statusLabel.setTranslateX(width/35);
 		statusLabel.setTranslateY(5);
-		BottomBar.getChildren().add(statusLabel);
+		BottomBar.getChildren().add(statusLabel);*/
 	}
 	
 	private void resetBoardLabels() {
@@ -199,12 +206,12 @@ public class SolitaireController {
 	}
 	
 	public void saveGame() {
-		ioControl.writeToFile(this.board);
+		ioController.writeToFile(this.board);
 	}
 	
 	public void loadGame() {
 		try {
-			this.board = ioControl.loadGame(filename);
+			this.board = ioController.loadGame(filename);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -5,6 +5,7 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 
 <AnchorPane fx:id="Root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="640.0" stylesheets="@Background.css" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="solitaire.fxui.SolitaireController">
    <children>
@@ -12,7 +13,7 @@
       <AnchorPane fx:id="FinalStacks" maxWidth="-Infinity" prefHeight="121.0" prefWidth="350.0" AnchorPane.topAnchor="40.0" />
             <AnchorPane fx:id="PlayStacks" prefHeight="319.0" prefWidth="650.0" AnchorPane.topAnchor="161.0" />
       <AnchorPane fx:id="Deck" onMouseClicked="#clickDeck" prefHeight="121.0" prefWidth="65.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="40.0" />
-      <MenuBar fx:id="menubar" id="menubar" maxHeight="25.0" maxWidth="Infinity" prefHeight="25.0" prefWidth="640.0" stylesheets="@MenuBar.css" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+      <MenuBar id="menubar" fx:id="menubar" maxHeight="25.0" maxWidth="Infinity" prefHeight="25.0" prefWidth="640.0" stylesheets="@MenuBar.css" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
         <menus>
           <Menu mnemonicParsing="false" text="_Game">
             <items>
@@ -33,6 +34,6 @@
           </Menu>
         </menus>
       </MenuBar>
-      <AnchorPane fx:id="BottomBar" prefHeight="30.0" styleClass="bottom-bar" stylesheets="@BottomBar.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+      <HBox fx:id="BottomBar" prefHeight="30.0" styleClass="bottom-bar" stylesheets="@BottomBar.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
    </children>
 </AnchorPane>
