@@ -3,6 +3,7 @@ package solitaire.fxui;
 import solitaire.model.GameBoard;
 import solitaire.model.SolConst;
 import solitaire.model.SolConst.SType;
+import solitaire.logging.DistributingLogger;
 import solitaire.logging.ILogger;
 import solitaire.logging.LabelLogger;
 import solitaire.model.Card;
@@ -64,6 +65,7 @@ public class SolitaireController {
 	private CardStack dragParentCardStack;
 	boolean initpStacks;
 	
+	private DistributingLogger logger;
 	private LabelLogger labelLogger;
 	private final IOController ioController = new IOController();
 	private final static String filename = "Save";
@@ -112,7 +114,8 @@ public class SolitaireController {
 		resetBoardLabels();
 		//TODO: Use distributive logger, log error and info to status bar, but warning (e.g. "card cannot be moved here") to file
 		labelLogger = new LabelLogger(BottomBar);
-		labelLogger.log(ILogger.ERROR, "New game started", null);
+		logger = new DistributingLogger(labelLogger, null, labelLogger);
+		logger.log(ILogger.INFO, "New game started", null);
 		/*Label statusLabel = new Label("New game started");
 		int width = windowWidth();
 		statusLabel.setTranslateX(width/35);
@@ -447,13 +450,16 @@ public class SolitaireController {
 	    ClipboardContent content = new ClipboardContent();
 	    content.putString(dbFromStack);
 	    db.setContent(content);
+		boolean ignoreCardsOnTop = false;
 
 		for (Map.Entry<SolConst.SType, List<Label>> labellist : labels.entrySet()) {
-			String key = labellist.getKey().toString();
-			System.out.println(key);
+			SType key = labellist.getKey();
+			if (key.equals(SType.THROWSTACK) || key.toString().charAt(0) == SType.F0.toString().charAt(0))
+				if (labellist.getValue().contains(l))
+					ignoreCardsOnTop = true;
 		}
 	 
-		if (ThrowStack.getChildren().contains(l) || FinalStacks.getChildren().contains(l)) {
+		if (ignoreCardsOnTop) {
 			img = new WritableImage((int) Math.round(l.getWidth() * scale), (int) Math.round(l.getHeight() * scale));
 			l.snapshot(snapshotParameters, img);
 			draggedLabel.setVisible(false);
@@ -464,7 +470,6 @@ public class SolitaireController {
 			for (int i = indexOfL; i < getPlayLabelStack(indexOfStacks).size(); i++) {
 				if (addCards || getPlayLabelStack(indexOfStacks).get(i).equals(l)) {
 					addCards = true;
-					
 					ImageView view = new ImageView(getPlayLabelStack(indexOfStacks).get(i).snapshot(snapshotParameters,null));
 					view.setY(15*(i - indexOfL));
 					view.setPreserveRatio(true);
@@ -488,7 +493,7 @@ public class SolitaireController {
 	EventHandler <DragEvent> dragOverEvent = new EventHandler <DragEvent>() {
         public void handle(DragEvent event) {
             event.acceptTransferModes(TransferMode.MOVE);
-            draggedLabel.setCursor(Cursor.DEFAULT);
+            draggedLabel.setCursor(Cursor.DISAPPEAR);
             event.consume();
         }
 	};
@@ -517,6 +522,7 @@ public class SolitaireController {
 	}
 	
 	private void drop(DragEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.SType stackName) {
+		labelLogger.clearStatusBar();
 		Dragboard db = event.getDragboard();
 		if (!db.hasString()) throw new IllegalArgumentException("The dragboard is empty for " + event.getSource());
 		dropLabel = l;
