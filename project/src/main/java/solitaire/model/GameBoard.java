@@ -372,6 +372,7 @@ public class GameBoard {
 	
 	/**
 	 * Loops through all four final stacks to check if a given card can be put there
+	 * throws exception if card cannot be moved to any final stack
 	 * @param card
 	 * @param fromStack
 	 */
@@ -391,14 +392,15 @@ public class GameBoard {
 				if (thisStackTopCard.getSuit() == card.getSuit()) {
 					try {
 						moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
+						return;
 					} catch (IllegalArgumentException e) {
 						//Card may not have been one face value higher, do nothing
-						e.printStackTrace();
 						throw new IllegalArgumentException("Card face is not one more than the card you're attemting to put it on");
 					}
 				}
 			}
 		}
+		throw new IllegalArgumentException("No finalstack of same suit found");
 	}
 
 	/**

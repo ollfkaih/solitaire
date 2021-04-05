@@ -1,6 +1,12 @@
 .bottom-bar
 {
-	-font-family: Courier;
-    -fx-background-color : Grey;
-	-fx-color: blue;
+	-fx-background-color: #E5ECE9;
+}
+.label
+{
+	-fx-text-alignment: center;
+	-fx-background-color: #297045;
+	-fx-font-family: Courier;
+	-fx-graphic-text-gap: 1em;
+	-fx-label-padding: 0.2em;
 }

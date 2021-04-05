@@ -18,7 +18,7 @@ import java.util.TreeMap;
 
 import javafx.scene.image.Image;
 
-public class IOController implements IFileReadWrite {
+public class IOHandler implements IFileReadWrite {
 	
 	public final static String SAVEEXT = "sol";
 	

@@ -16,12 +16,12 @@ public class SolitaireApp extends Application {
     	stage.setTitle("Solitaire"); //fallback
         stage.setScene(new Scene(loader.getRoot()));
         stage.show();	
-        stage.setOnCloseRequest(e -> {
+        stage.setOnCloseRequest(event -> {
 			try {
 				//TODO: Uncomment
 				//appExit();
-			} catch (Exception e1) {
-				e1.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
         stage.setMinHeight(480 + 40 + 30 - 10); //TODO: Review (Root height + menubar, bottom bar and empty height)

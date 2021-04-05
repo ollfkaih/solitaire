@@ -15,6 +15,8 @@ import solitaire.model.SolConst.SType;
 
 public class WinAnimation extends AnimationTimer{
 	private static final int takeSnapshotTrigger = 2;
+	//xSpeed and yAcceleration should be adjusted on a non-60fps system, however I've found no good documented method to overcome this, and have chosen to not focus more time at it
+	//If your screen runs at more than 60 fps, setting it to 60 fps in your graphics card control panel is a temporary fix for this animation
 	private static final int xSpeed = 3;
 	private static final double yAcceleration = 0.5; 
 	private static final int bottombarheight = 30; //TODO: Not hardcode
@@ -173,5 +175,11 @@ public class WinAnimation extends AnimationTimer{
 			handle(now);
         else
             this.stop();
+	}
+
+	@Override
+	public void stop() {
+		super.stop();
+		
 	}
 }

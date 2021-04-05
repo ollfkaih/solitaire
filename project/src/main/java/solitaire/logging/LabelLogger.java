@@ -1,7 +1,6 @@
 package solitaire.logging;
 
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
@@ -38,9 +37,5 @@ public class LabelLogger implements ILogger {
 		
 		//TODO: Start timer, make a TimerTask with a runnable to log "null/nothing" to the label again (or better, maybe clear the text of the label) ? 
 		//timer.schedule
-	}
-
-	public void clearStatusBar() {
-		statusBar.getChildren().clear();
 	}
 }

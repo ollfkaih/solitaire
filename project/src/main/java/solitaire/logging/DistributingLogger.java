@@ -6,10 +6,11 @@ import java.util.Map;
 public class DistributingLogger implements ILogger {
 	private Map<String, ILogger> loggerMap = new HashMap<String, ILogger>();
 	
-	public DistributingLogger(ILogger errorLogger, ILogger warningLogger, ILogger infoLogger) {
+	public DistributingLogger(ILogger errorLogger, ILogger warningLogger, ILogger infoLogger, ILogger fineLogger) {
 		loggerMap.put(ERROR, errorLogger);
 		loggerMap.put(WARNING, warningLogger);
 		loggerMap.put(INFO, infoLogger);
+		loggerMap.put(FINE, fineLogger);
 	}
 	
 	void setLogger(String severity, ILogger logger) {
