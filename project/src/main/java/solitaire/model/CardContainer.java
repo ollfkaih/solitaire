@@ -1,6 +1,8 @@
 package solitaire.model;
 
-public interface CardContainer extends Iterable<Card> {
+import java.util.List;
+
+public interface CardContainer extends List<Card>{
 	int getCardCount();
 	Card getCard(int n);
 	Object getStackName();

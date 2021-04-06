@@ -14,28 +14,33 @@ import solitaire.model.SolConst;
 import solitaire.model.SolConst.SType;
 
 public class WinAnimation extends AnimationTimer{
-	private static final int takeSnapshotTrigger = 2;
-	//xSpeed and yAcceleration should be adjusted on a non-60fps system, however I've found no good documented method to overcome this, and have chosen to not focus more time at it
-	//If your screen runs at more than 60 fps, setting it to 60 fps in your graphics card control panel is a temporary fix for this animation
-	private static final int xSpeed = 3;
-	private static final double yAcceleration = 0.5; 
+	private static final float takeSnapshotTrigger = 2.5f;
+	private static final int xSpeed = 3; //fixed horizontal speed
+	private static final double yAcceleration = 0.5; //acceleration vertically
 	private static final int bottombarheight = 30; //TODO: Not hardcode
 	private AnchorPane Root;
-	private int thisLabelFrames;
+	private long previousTime; //previous time card was moved
+	private int thisLabelFrames; //number of frames we've been on a particular card
     private Map<SolConst.SType, List<Label>> finalLabels = new TreeMap<SolConst.SType, List<Label>>();
     private int cardValue = SolConst.CARDSINSUIT;
     private int stackIndex = 0; 
-	private double prevTranslateX;
-    private double randX;
-    private double randY;
+	private double prevTranslateX; //position in x-direction on previous frame when a snapshot was taken
+	private double prevTranslateY; //position in y-direction on previous frame when a snapshot was taken
+    private double randomX;
+    private double randomY;
     private double vy; //velocity in y-direction
     private double vyprev; //velocity in y-direction on previous frame
-	private double prevTranslateY; //previous y-translate position
 	private boolean justCollided = false; //true on the frame just after a card collides with bottom
     private Random r = new Random();
 	private int rootChildrentoKeep;
 	private WritableImage img;
-    
+   
+	/**
+	 * A card animation to be played when the game is won (controlled with start() and stop() methods inherited from AnimationTimer)
+	 * @param finalLabels A Map of labels to move/animate
+	 * @param Root The parent of 
+	 * @param childrenToKeep
+	 */
     WinAnimation (Map<SolConst.SType, List<Label>> finalLabels, AnchorPane Root, int childrenToKeep) {
         if (finalLabels.size() != SolConst.SUITS)
             throw new IllegalArgumentException("There should be four final stacks");
@@ -51,7 +56,6 @@ public class WinAnimation extends AnimationTimer{
     
     /**
      * Returns a pseudorandom double between 0.5 and 1
-     * @returnthe pseudorandom value
      */
     private double randomDoublePositive() {
     	return (r.nextDouble()/2 + 0.5);
@@ -74,8 +78,8 @@ public class WinAnimation extends AnimationTimer{
      * @param l the label to move
      */
     public void moveLabelFunny(Label l) {
-    	double vx = randX * xSpeed;
-		vy = vyprev + randY*yAcceleration;
+    	double vx = randomX * xSpeed;
+		vy = vyprev + randomY*yAcceleration;
     	l.setTranslateX(vx*thisLabelFrames);
 		l.setTranslateY(l.getTranslateY() + vy);
 		handleCollision(l);
@@ -119,15 +123,22 @@ public class WinAnimation extends AnimationTimer{
 		ImageView view = new ImageView(img);
 		view.relocate(l.getLayoutX() + l.getTranslateX(), l.getLayoutY() + l.getTranslateY());
 		Root.getChildren().add(view);
-		if (Root.getChildren().size() > 3000 && Root.getChildren().get(rootChildrentoKeep).getClass() == ImageView.class) {
-			Root.getChildren().remove(rootChildrentoKeep); //removes the oldest snapshots we've added
+		if (Root.getChildren().size() > 3000 && Root.getChildren().get(rootChildrentoKeep - 1).getClass() == ImageView.class) {
+			Root.getChildren().remove(rootChildrentoKeep - 1); //removes the oldest snapshots we've added
 		}
 	}
 
 	@Override
 	public void handle(long now) {
-		//TODO: Verify that randX is never 0
-		if (randY == 0)
+		//approximate frame limiter to 60fps
+		if (1e-9*(now - previousTime) < 1d/60) {
+			previousTime = previousTime - now;
+			return;
+		} else 
+			previousTime = now;
+		
+		//TODO: Verify that randomX is never 0
+		if (randomY == 0)
 			switchStack(now);
 		Label l = null;
 		if (stackIndex < SolConst.SUITS && cardValue > 0) {
@@ -158,9 +169,9 @@ public class WinAnimation extends AnimationTimer{
 	 */
 	private void switchStack(long now) {
 		thisLabelFrames = 0;
-		randX = randomDouble();
-		randY = randomDoublePositive();
-		vy = randY;
+		randomX = randomDouble();
+		randomY = randomDoublePositive();
+		vy = randomY;
 		vyprev = 0;
 		if (stackIndex >= 0 && stackIndex < 4) {
 			Label l = finalLabels.get(SType.valueOf("F" + stackIndex)).get(cardValue);
@@ -180,6 +191,8 @@ public class WinAnimation extends AnimationTimer{
 	@Override
 	public void stop() {
 		super.stop();
-		
+		while (Root.getChildren().size() >= rootChildrentoKeep)
+			Root.getChildren().remove(rootChildrentoKeep - 1);
+		Root.getChildren().removeIf(e -> (e instanceof Label || e instanceof ImageView));
 	}
 }

@@ -1,5 +1,6 @@
 package solitaire.model;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -115,18 +116,16 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 		if (n < 0) {
 			throw new IllegalArgumentException("Cannot play a negative number of cards: " + n + ". Stack has " + this.size() + "cards.");
 		}
-		for (int i = 0; i < n && this.size() > 0; i++) {
+		List<Card> cardsToRemove = new ArrayList<>();
+		for (int i = 0; i < n; i++) {
 			if (this.size() - n + i >= 0) { 
-				stack.addCard(this.get(this.size() - n + i));
-				this.remove(this.size() - n + i);
-			} else 
-				i++;
+				Card card = this.get(this.size() - n + i);
+				stack.addCard(card);
+				cardsToRemove.add(card);
+			}
 		}
-		//TODO: Swaps the order, remove
-		/*for (; n > 0 && this.size() > 0; n--) {
-			stack.addCard(this.get(this.size() - 1));
-			this.remove(this.size() - 1);
-		}*/
+		for (Card card: cardsToRemove)
+			this.remove(card);
 	}
 	
 	@Override

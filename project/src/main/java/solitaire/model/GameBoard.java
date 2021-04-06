@@ -1,6 +1,5 @@
 package solitaire.model;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -45,10 +44,8 @@ public class GameBoard {
 	public GameBoard(Map<SType, CardContainer> map) {
 		if (map.size() != 13)
 			throw new IllegalArgumentException("The stack map has too many stacks");
-		// int totalSize = 0;
 		map.entrySet().stream().filter(e -> ! e.getKey().equals(SType.DECK)).forEach(e -> {
 			int cardCount = e.getValue().getCardCount();
-			// totalSize += cardCount;
 			if (cardCount > SolConst.CARDSINSUIT + ((CardStack) e.getValue()).getHiddenCards())
 				throw new IllegalArgumentException("The stack map contains stacks that are too big");
 		});
@@ -66,6 +63,10 @@ public class GameBoard {
 		}
 		if (sum != SolConst.SUITS * SolConst.CARDSINSUIT)
 			throw new IllegalArgumentException("Wrong number of cards in stack: ");
+		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
+			if (((CardStack) map.get(SType.valueOf("P" + i))).getHiddenCards() > i)
+				throw new IllegalArgumentException("The stack map contains stacks with too many hidden cards");
+		}
 		this.stacks = map;
 	}
 
@@ -235,7 +236,7 @@ public class GameBoard {
 	 */
 	private void saveMove(CardContainer from, CardContainer to, int indexInToStack) {
 		if (indexInToStack < 0 || indexInToStack > to.getCardCount()) 
-			throw new IllegalArgumentException("Index is out of bounds stack " + to + ", index:" + indexInToStack);
+			throw new IndexOutOfBoundsException("Could not save move, index is out of bounds of stack: " + to + ", index:" + indexInToStack);
 		
 		lastFromStack = from;
 		lastToStack = to;
@@ -251,9 +252,7 @@ public class GameBoard {
 				((CardStack) lastToStack).play(lastFromStack, indexOfLastMove);
 			else {
 				if (getThrowStack().size() == 0 && getDeck().size() > 0) {
-					getDeck().stream().forEach(c -> getThrowStack().addCard(c));
-					Collections.reverse(getThrowStack());
-					getDeck().clear();
+					swapWhileRetainingOrder(getDeck(), getThrowStack());
 				} else
 					((CardDeck) lastToStack).deal((CardStack) lastFromStack, indexOfLastMove);
  			}
@@ -291,24 +290,31 @@ public class GameBoard {
 			
 	/**
 	 * deal takes the top n (or the remaining cards if less than n) cards from the drawingStack and puts them on the
-	 * throwStack 
-	 *
+	 * throwStack
+	 * @return the number of cards actually dealt
 	 */
-	public void deal(int n) {
+	public int deal(int n) {
+		int returnVal = 0;
 		if (n <= 0)
 			throw new IllegalArgumentException("You must deal a positive number of cards");
 		if (getDeck().size() == 0) {
 			resetDrawStack();
 			saveMove(getThrowStack(), getDeck(), 0);
-			return;
+			return returnVal;
+		}
+		int index;
+		int size = getDeck().getCardCount();
+		if (size <= n) {
+			index = 0;
+			returnVal = size;
+		}
+		else {
+			index = getThrowStack().getCardCount();
+			returnVal = n;
 		}
 		getDeck().deal(getThrowStack(), n);
-		int index;
-		if (getThrowStack().size() <= 3) 
-			index = 0;
-		else 
-			index = getThrowStack().size() - n;
 		saveMove(getDeck(), getThrowStack(), index);
+		return returnVal;
 	}
 	
 	/**
@@ -318,23 +324,30 @@ public class GameBoard {
 		if (getDeck().size() != 0) {
 			throw new IllegalStateException("The drawingStack is not empty, cards should be drawn from it and put on the throwStack first");
 		}
-		if (getThrowStack().size() > 0) { 
-			getDeck().addAll(getThrowStack());
-			getThrowStack().clear();
-			//Because cards are put "on top" of the throwStack, we want to reverse them back in the drawing stack
-			Collections.reverse(getDeck());
-		} else if (getThrowStack().size() == 0) {
+		if (getThrowStack().size() == 0) {
 			return; //Both stacks are empty, so nothing to be done.
+		 }
+		swapWhileRetainingOrder(getThrowStack(), getDeck());
+	}
+	
+	private void swapWhileRetainingOrder(CardContainer from, CardContainer to) {
+		if (to == from) return;
+		while (from.size() > 0) {
+			for (int i = 0; i < SolConst.CARDSTODEAL; i++) {
+				if (from.isEmpty()) break;
+				to.add(i, from.get(0));
+				from.remove(0);
+			}
 		}
 	}
 	
 	/**
 	 * Tries to decrement the hiddencards counter of a stack by one
-	 * @param cstack
+	 * @param cardStack the cardStack to reveal the top card of
 	 */
-	public void revealCard(CardStack cstack) {
-		if (stacks.entrySet().stream().filter(stack -> stack.getValue().equals(cstack) && stack.getKey().toString().charAt(0) == 'P') != null) {
-			cstack.decrementHiddenCards();
+	public void revealCard(CardStack cardStack) {
+		if (stacks.entrySet().stream().filter(stack -> stack.getValue().equals(cardStack) && stack.getKey().toString().charAt(0) == 'P') != null) {
+			cardStack.decrementHiddenCards();
 			//reveal cannot be undone, setting lastFromStack to null means undo and redo will throw illegal State Exception
 			lastFromStack = null;
 		}
@@ -373,8 +386,8 @@ public class GameBoard {
 	/**
 	 * Loops through all four final stacks to check if a given card can be put there
 	 * throws exception if card cannot be moved to any final stack
-	 * @param card
-	 * @param fromStack
+	 * @param card the Card to be moved
+	 * @param fromStack the stack the card is currently in
 	 */
 	public void moveToFinalStacks(Card card, CardStack fromStack) {
 		if (!fromStack.contains(card)) throw new IllegalArgumentException("Card is not in given stack");

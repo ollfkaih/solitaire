@@ -10,7 +10,10 @@ import solitaire.logging.StreamLogger;
 public class StatusBarController {
 	@FXML HBox BottomBar;
 	
-	public final static String DEALERROR = "Could not deal cards", NEWGAME = "New game started", SAVEERROR = "Could not save game", LOADERROR = "Could not load game", GAMEWON = "You won! Press F2 or 'Game' -> 'New game' to play again" ;
+	public final static String DEALERROR = "Could not deal cards", NEWGAME = "New game started",
+			SAVEERROR = "Could not save game", LOADERROR = "Could not load game", 
+			SAVESUCCESS = "Game saved", LOADSUCCESS = "Game loaded",
+			GAMEWON = "You won! Press F2 or 'Game' -> 'New game' to play again" ;
 	
 	private DistributingLogger logger;
 	private StreamLogger warningLogger;
