@@ -64,26 +64,6 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 		}
 		return this.get(n);
 	}
-	/**
-	 * Shuffle perfectly puts the stack in an order where every second card comes from the top half of 
-	 * the deck, and the other cards come from the bottom half (not really a shuffle)
-	 */
-	public void shufflePerfectly() {
-		int deckLength = this.size();
-		
-		Card[] bottomDeck = new Card[deckLength/2];
-		Card[] topDeck = new Card[deckLength/2];
-		
-		for (int i = 0; i < deckLength/2; i ++) {
-			bottomDeck[i] = this.get(deckLength/2 + i);
-			topDeck[i] = this.get(i);
-		}
-		
-		for (int i = 0; i < deckLength; i+=2) {
-			this.set(i, topDeck[i/2]);
-			this.set(i+1,bottomDeck[i/2]);
-		}		
-	}
 
 	/**
 	 * shuffle puts this deck into a pseudo-random order
@@ -108,24 +88,21 @@ public class CardDeck extends Stack<Card> implements CardContainer{
 	}
 	
 	/**
-	 * Deal moves n cards from this stack to another stack (the first method parameter)
-	 * @param stack
-	 * @param n
+	 * Deal moves n cards from this stack to another stack 
+	 * @param stack The stack to move cards to
+	 * @param n Number of cards to deal
 	 */
 	public void deal(CardStack stack, int n) {
 		if (n < 0) {
 			throw new IllegalArgumentException("Cannot play a negative number of cards: " + n + ". Stack has " + this.size() + "cards.");
 		}
-		List<Card> cardsToRemove = new ArrayList<>();
 		for (int i = 0; i < n; i++) {
 			if (this.size() - n + i >= 0) { 
 				Card card = this.get(this.size() - n + i);
 				stack.addCard(card);
-				cardsToRemove.add(card);
+				this.remove(card);
 			}
 		}
-		for (Card card: cardsToRemove)
-			this.remove(card);
 	}
 	
 	@Override

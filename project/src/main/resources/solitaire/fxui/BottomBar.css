@@ -5,7 +5,7 @@
 .label
 {
 	-fx-text-alignment: center;
-	-fx-background-color: #297045;
+	-fx-background-color: grey;
 	-fx-font-family: Courier;
 	-fx-graphic-text-gap: 1em;
 	-fx-label-padding: 0.2em;

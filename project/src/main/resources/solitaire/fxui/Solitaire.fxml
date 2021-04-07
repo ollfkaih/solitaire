@@ -8,11 +8,11 @@
 
 <AnchorPane fx:id="Root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="640.0" stylesheets="@Background.css" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="solitaire.fxui.SolitaireController">
    <children>
-	<fx:include fx:id="statusBar" prefHeight="30.0" source="StatusBar.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
     <AnchorPane fx:id="Deck" onMouseClicked="#clickDeck" prefHeight="121.0" prefWidth="65.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="40.0" />
     <AnchorPane fx:id="ThrowStack" prefHeight="121.0" prefWidth="85.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="40.0" />
     <AnchorPane fx:id="FinalStacks" maxWidth="-Infinity" prefHeight="121.0" prefWidth="350.0" AnchorPane.topAnchor="40.0" />
     <AnchorPane fx:id="PlayStacks" prefHeight="319.0" prefWidth="650.0" AnchorPane.topAnchor="160.0" />
+    <fx:include fx:id="statusBar" prefHeight="30.0" source="StatusBar.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
     <MenuBar id="menubar" fx:id="menubar" styleClass="menubar" maxHeight="25.0" maxWidth="Infinity" prefHeight="25.0" prefWidth="640.0" stylesheets="@MenuBar.css" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
       <menus>
         <Menu mnemonicParsing="false" text="_Game">
@@ -28,13 +28,11 @@
               <MenuItem fx:id="Exit" mnemonicParsing="false" onAction="#exit" text="Exit" />
           </items>
        </Menu>
- <!--          
- 		 <Menu fx:id="About" mnemonicParsing="false" text="_About">
+ <!-- 		 <Menu fx:id="About" mnemonicParsing="false" text="_About">
             <items>
               <MenuItem mnemonicParsing="false" text="About" />
             </items>
-         </Menu>
--->
+         </Menu> -->
       </menus>
     </MenuBar>
    </children>

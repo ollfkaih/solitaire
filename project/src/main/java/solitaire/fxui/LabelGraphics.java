@@ -1,5 +1,11 @@
 package solitaire.fxui;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.nio.file.Path;
+
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -7,6 +13,7 @@ import solitaire.model.Card;
 import solitaire.model.SolConst;
 
 public final class LabelGraphics {
+	private static final String IMAGEEXTENSION = ".png";
 	private final static float cardScaler = (float) (1/2.9);
 
 	/**
@@ -27,9 +34,8 @@ public final class LabelGraphics {
 	 * setSpecialImage(Label, char) sets the top card image to the backside of a card carddeck
 	 * @param stack
 	 */
-	public static boolean setSpecialImage(Label label, char imgToShow) throws IllegalArgumentException {
+	public static boolean setSpecialImage(Label label, char imgToShow) {
 		String imgDir = SolConst.IMGDIR;
-		String ext = ".png";
 		String fileName;
 		Image img;
 				
@@ -39,7 +45,7 @@ public final class LabelGraphics {
 		default -> throw new IllegalArgumentException("Illegal image to show: " + imgToShow);
 		}
 		try {
-			img = new Image(SolitaireController.class.getResourceAsStream(imgDir + fileName + ext));
+			img = new Image(SolitaireController.class.getResourceAsStream(imgDir + fileName + IMAGEEXTENSION));
 			setLabelGraphicToView(label, img);
 		} catch (Exception e) {
 			return false;
@@ -57,11 +63,48 @@ public final class LabelGraphics {
 	public static boolean setCardImage(Label label, Card card) {
 		Image img;
 		try {
-			img = IOHandler.getImage(card);
+			img = LabelGraphics.getImage(card);
 			setLabelGraphicToView(label, img);
 		} catch (Exception e) {
 			return false;
 		}
 	return true;
+	}
+
+	/**
+	 * Returns the appropriate image file to represent a card.
+	 * @param card The card to represent
+	 * @return
+	 */
+	public static Image getImage(Card card) {
+		String imgDir = SolConst.IMGDIR;
+		Image img;
+		
+		boolean useInt = false;
+		char faceVal = 0;
+		switch (card.getFace()) {
+		case 2,3,4,5,6,7,8,9 -> {
+				useInt = true;
+			}
+		case 1  -> faceVal = 'A';
+		case 10 -> faceVal = 'T';
+		case 11 -> faceVal = 'J';
+		case 12 -> faceVal = 'Q';
+		case 13 -> faceVal = 'K';
+		default -> throw new IllegalArgumentException("Illegal card");
+		}
+		
+		try {
+			if (useInt) {
+				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + card.getFace() + card.getSuit() + IMAGEEXTENSION));
+			} else {
+				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + faceVal + card.getSuit() + IMAGEEXTENSION));
+			}
+			return img;
+		} catch (NullPointerException e) {
+			throw new IllegalArgumentException("Could not get card face");
+		} catch (Exception e) {
+			throw new IllegalArgumentException("HUH? Error getting cardImage");
+		}
 	}
 }

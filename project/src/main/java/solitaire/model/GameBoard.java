@@ -1,6 +1,7 @@
 package solitaire.model;
 
 import java.util.Map;
+import java.util.Stack;
 import java.util.TreeMap;
 
 import solitaire.model.SolConst.SType;
@@ -30,10 +31,11 @@ public class GameBoard {
 		
 		//The playstacks are where we put cards for temporary storage while we play the game
 		for (int i = SolConst.PLAYSTACKSNUM - 1; i >= 0; i--) {
-			CardStack playStack = new CardStack(SType.valueOf("P" + i));
+			SType key = SType.valueOf("P" + i);
+			CardStack playStack = new CardStack(key);
 			((CardDeck) stacks.get(SType.DECK)).deal(playStack, i + 1);
-			playStack.setHiddenCards(i);
-			stacks.put(SType.valueOf("P" + i), playStack);			
+			playStack = new CardStack(key, i, playStack.toArray(new Card[0]));
+			stacks.put(key, playStack);			
 		}
 		
 		//The finalstacks are where we put cards of the same suit from ace to king in order to beat the game
@@ -49,19 +51,17 @@ public class GameBoard {
 			if (cardCount > SolConst.CARDSINSUIT + ((CardStack) e.getValue()).getHiddenCards())
 				throw new IllegalArgumentException("The stack map contains stacks that are too big");
 		});
-		int sum = 0;
-		CardStack allCardsOfGame = new CardStack(null);
+		Stack<Card> allCardsOfGame = new Stack<Card>();
 		for (CardContainer stack: map.values()) {
-			sum += stack.getCardCount();
 			for (Card card : stack) {
 				for (Card c2 : allCardsOfGame) {
 					if (card.equals(c2))
 						throw new IllegalArgumentException("Duplicate cards in file");
 				}
-				allCardsOfGame.addCard(card);
+				allCardsOfGame.add(card);
 			}
 		}
-		if (sum != SolConst.SUITS * SolConst.CARDSINSUIT)
+		if (allCardsOfGame.size() != SolConst.SUITS * SolConst.CARDSINSUIT)
 			throw new IllegalArgumentException("Wrong number of cards in stack: ");
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
 			if (((CardStack) map.get(SType.valueOf("P" + i))).getHiddenCards() > i)
@@ -155,37 +155,34 @@ public class GameBoard {
 		return false;
 	}
 	/**
-	 * Legalmove(Card, CardStack, CardStack) checks if the card is free (with isCardFree(card, CardStack))
-	 * and applies the appropriate rules of Solitaire for what cards are allowed to be put on what other cards
-	 * and in what order.
-	 * @param card
-	 * @param fromStack
-	 * @param toStack
-	 * @return 
+	 * Checks if a given card on the board is free (with isCardFree) and applies the appropriate rules of
+	 * Solitaire for what cards are allowed to be put on what other cards and in what order.
+	 * @param card The card to test if can be moved
+	 * @param fromStack The stack the card is in
+	 * @param toStack The stack to test if card can be moved to
 	 */
 	private boolean legalMove(Card card, CardStack fromStack, CardStack toStack) {
 		if (!isCardFree(card, fromStack)) {
 			return false;
 		}
 
-		//This switch is the main reason for stacknames
 		switch (toStack.getStackName()) {
-		case  DECK -> { 
-				throw new IllegalArgumentException("Cards cannot be moved back to the deck");
-			}
+		case THROWSTACK, DECK -> {
+			throw new IllegalArgumentException("Cards cannot be moved back to the throwStack or deck");
+		}
 		//Applies rules for finalStacks: increasing from ace to king of the same suit
 		case F0, F1, F2, F3 -> {
 			if (card.getFace() == 1) {
 				for (int i = 0; i < SolConst.SUITS; i++) {
 					CardContainer currentStack = stacks.get(SType.valueOf("F" + i));
-					if (!getFinalStack(i).empty()) {
+					if (!getFinalStack(i).isEmpty()) {
 						if (currentStack.getCard(0).getSuit() == card.getSuit() && currentStack != fromStack) {
 							throw new IllegalStateException("The game is in an illegal state: you are attempting to put an ace in a final stack, "
 									+ "but there is already a card of the same suit in a final stack.");
 						}
 					}
 				} return true; //No stacks had a card of the same suit, and card is an ace.
-			} else {
+			} else if (!toStack.isEmpty()) {
 				for (int i = 0; i < SolConst.SUITS; i++) {
 					CardContainer currentStack = stacks.get(SType.valueOf("F" + i));
 					if (toStack.equals(currentStack)) {
@@ -222,10 +219,6 @@ public class GameBoard {
 			}
 			return false;
 		}
-		case THROWSTACK -> {
-			throw new IllegalArgumentException("Cards cannot be moved to the throwStack");
-		}
-		
 		}
 		throw new IllegalStateException(String.format("How did we get here? card: %s fromStack: %s toStack: %s", card, fromStack, toStack));
 		//return false;
@@ -293,6 +286,7 @@ public class GameBoard {
 	 * throwStack
 	 * @return the number of cards actually dealt
 	 */
+	//TODO: return -1 if reset?
 	public int deal(int n) {
 		int returnVal = 0;
 		if (n <= 0)
@@ -392,27 +386,25 @@ public class GameBoard {
 	public void moveToFinalStacks(Card card, CardStack fromStack) {
 		if (!fromStack.contains(card)) throw new IllegalArgumentException("Card is not in given stack");
 		for (int i = 0; i < SolConst.SUITS; i++) {
-			Card thisStackTopCard = null;
-			try {
-				thisStackTopCard = this.getFinalStack(i).peek();
-			} catch (Exception IllegalArgumentException) {
+			if (getFinalStack(i).isEmpty()) {
 				if (card.getFace() == 1) {
 					moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
 					return;
 				}
-			}
-			if (thisStackTopCard != null) {
+			} else {
+				Card thisStackTopCard = this.getFinalStack(i).peek();
 				if (thisStackTopCard.getSuit() == card.getSuit()) {
 					try {
 						moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
 						return;
 					} catch (IllegalArgumentException e) {
 						//Card may not have been one face value higher, do nothing
-						throw new IllegalArgumentException("Card face is not one more than the card you're attemting to put it on");
+						throw new IllegalArgumentException("Face value too high: Highest value of stack with suit " + card.getSuit() + " is " + thisStackTopCard.getFace() + ", your card was" + card);
 					}
 				}
 			}
 		}
+		//The card passed could not be moved to any final stack, throw exception
 		throw new IllegalArgumentException("No finalstack of same suit found");
 	}
 

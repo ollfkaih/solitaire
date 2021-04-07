@@ -3,6 +3,7 @@ package solitaire.logging;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 
 public class LabelLogger implements ILogger {
 	private HBox statusBar;
@@ -28,6 +29,13 @@ public class LabelLogger implements ILogger {
 		label.setText(message);
 		label.setTranslateX(10);
 		label.setTranslateY(5);
+		Color textColor;
+		switch (severity) {
+		case ILogger.ERROR -> textColor = Color.RED;
+		case ILogger.INFO -> textColor = Color.BLACK;
+		default -> textColor = Color.BLUEVIOLET;
+		}
+		label.setTextFill(textColor);
 		/*if (severity == ERROR) 
 			label.setTranslateX(200);*/
 		//Button button = new Button("Click me");

@@ -1,6 +1,7 @@
 package solitaire.model;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class CardContainerIterator implements Iterator<Card> {
 	private int currentIndex = 0;
@@ -18,13 +19,13 @@ public class CardContainerIterator implements Iterator<Card> {
 	@Override
 	public Card next() {
         if (!hasNext())
-            return null;
+        	throw new NoSuchElementException(); 
 		Card returnCard;
         
 		try {
 		returnCard = handOfCards.get(currentIndex);
-		} catch (IllegalArgumentException e) {
-			return null;
+		} catch (Exception e) {
+			throw new NoSuchElementException(); 
 		}
         currentIndex++;
 		return returnCard;

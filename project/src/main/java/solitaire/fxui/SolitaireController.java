@@ -8,7 +8,6 @@ import solitaire.model.Card;
 import solitaire.model.CardDeck;
 import solitaire.model.CardStack;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +74,7 @@ public class SolitaireController  {
 		return labels.get(SType.valueOf("P" + i));
 	}	
 	private List<Label> getThrowStackLabels() {
-		return  labels.get(SType.THROWSTACK);
+		return labels.get(SType.THROWSTACK);
 	}	
 	private List<Label> getDeckLabel() {
 		return labels.get(SType.DECK);
@@ -108,8 +107,8 @@ public class SolitaireController  {
 		//TODO: REMOVE TO NOT AUTOLOAD
 //		loadGame();
 		
-		resetBoardLabels();
 		statusBarController.log(ILogger.INFO, StatusBarController.NEWGAME, null);
+		resetBoardLabels();
 	}
 	
 	/**
@@ -138,8 +137,14 @@ public class SolitaireController  {
 			getDeckLabel().clear();
 			getDeckLabel().add(new Label(null));
 		Deck.getChildren().add(getDeckLabel().get(0));
-		LabelGraphics.setSpecialImage(getDeckLabel().get(0), 'b');
+		setSpecialImageforLabel(getDeckLabel().get(0), 'b');
 		updateBoard();
+	}
+	
+	private void setSpecialImageforLabel(Label label, char type) {
+		boolean labelSetCorrectly = LabelGraphics.setSpecialImage(label, type);
+		if (!labelSetCorrectly)
+			statusBarController.log(ILogger.ERROR, StatusBarController.LOADGRAPHICSERROR, null);
 	}
 	
 	@FXML
@@ -148,15 +153,14 @@ public class SolitaireController  {
 		try {
 			cardsDealt = board.deal(SolConst.CARDSTODEAL);
 		} catch (Exception e) {
-			e.printStackTrace();
 			statusBarController.log(ILogger.ERROR, StatusBarController.DEALERROR , null);
 		}
 		canUndo();
 		if (winAnimate != null) return;
+		statusBarController.log(ILogger.FINE, cardsDealt + " cards dealt", null);
 		updateDeck();
 		updateThrowStack();
 		deckTranslate(cardsDealt);
-		statusBarController.log(ILogger.FINE, cardsDealt + " cards dealt", null);
 	}
 	
 	@FXML void undo() {
@@ -217,11 +221,12 @@ public class SolitaireController  {
 	}
 	
 	public void loadGame() {
-//		stopWinAnimation();
 		try {
 			this.board = ioHandler.loadGame(filename);
 			statusBarController.log(ILogger.INFO, StatusBarController.LOADSUCCESS, null);
-		} catch (IOException e) {
+		} catch (IllegalArgumentException e) {
+			statusBarController.log(ILogger.ERROR, StatusBarController.SAVEFILECORRUPT, e);
+		} catch (Exception e) {
 			statusBarController.log(ILogger.ERROR, StatusBarController.LOADERROR, e);
 		}
 		resetBoardLabels();
@@ -242,9 +247,9 @@ public class SolitaireController  {
 	 */
 	private void updateDeck() {
 		if (board.drawStackEmpty()) {
-			LabelGraphics.setSpecialImage(getDeckLabel().get(0),'e');
+			setSpecialImageforLabel(getDeckLabel().get(0),'e');
 		} else {
-			LabelGraphics.setSpecialImage(getDeckLabel().get(0),'b');
+			setSpecialImageforLabel(getDeckLabel().get(0),'b');
 		}
 	}
 
@@ -269,18 +274,20 @@ public class SolitaireController  {
 		    int labelj = labelIndex;
 			//Hidden cards should not be draggable or doubleclickable
 			if (! stack.isHidden(cardIndex)) {
-				Card card = stack.get(cardIndex);
-				LabelGraphics.setCardImage(stackLabels.get(labelIndex), card);
+				Card card = stack.getCard(cardIndex);
+				boolean labelSetCorrectly = LabelGraphics.setCardImage(stackLabels.get(labelIndex), card);
+				if (!labelSetCorrectly)
+					statusBarController.log(ILogger.ERROR, StatusBarController.LOADGRAPHICSERROR, null);
 				if (labelIndex != 0 && stack.getStackName().toString().charAt(0) != 'T' || cardIndex == stack.getCardCount() - 1) {
 					stackLabels.get(labelIndex).setOnDragDetected((MouseEvent event) -> dragDetected(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
 	    			stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> doubleClickCard(event, stack));
 				}
 			} else {
 				if (labelIndex == 0) {
-					LabelGraphics.setSpecialImage(stackLabels.get(labelIndex), 'e');
+					setSpecialImageforLabel(stackLabels.get(labelIndex), 'e');
 				}
 				else {
-					LabelGraphics.setSpecialImage(stackLabels.get(labelIndex),'b');
+					setSpecialImageforLabel(stackLabels.get(labelIndex),'b');
 				}
 				if (cardIndex == stack.size() - 1 && labelIndex != 0)
 					stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> revealCard(stack));
@@ -599,7 +606,7 @@ public class SolitaireController  {
 			} case 'f' -> {
 				board.moveCard(inStackIndex, dragParentCardStack, board.getFinalStack(indexOfStacks));
 			}}
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
 			statusBarController.log(ILogger.WARNING, "Not a legal move", e);;
 		}
 		canUndo();
@@ -614,9 +621,9 @@ public class SolitaireController  {
             		canUndo();
             		statusBarController.clearStatusBar();
             		updateBoard();
-            		statusBarController.log(ILogger.FINE, "Card moved to a final stack: " + card.toString(), null);
+            		statusBarController.log(ILogger.FINE, "Card moved to a final stack: " + card, null);
             	} else {
-            		statusBarController.log(ILogger.WARNING, "Could not move card to a final stack: " + card.toString(), null);
+            		statusBarController.log(ILogger.WARNING, "No final stack to legally move " + card + " to.", null);
             	} 
             }
         }
