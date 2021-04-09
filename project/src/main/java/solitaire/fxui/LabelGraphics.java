@@ -1,11 +1,5 @@
 package solitaire.fxui;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.nio.file.Path;
-
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -13,8 +7,9 @@ import solitaire.model.Card;
 import solitaire.model.SolConst;
 
 public final class LabelGraphics {
-	private static final String IMAGEEXTENSION = ".png";
+	private final static String IMAGEEXTENSION = ".png";
 	private final static float cardScaler = (float) (1/2.9);
+	public static enum SPECIALIMAGE {BACK,EMPTY}; 
 
 	/**
 	 * Creates an imageview of an image and assigns that to the given label
@@ -22,26 +17,29 @@ public final class LabelGraphics {
 	 * @param img
 	 */
 	private static void setLabelGraphicToView(Label label, Image img) {
-		ImageView view;
-		view = new ImageView(img);
+		if (img == null)
+			throw new IllegalArgumentException("Card image must not be null");
+		ImageView view = new ImageView(img);
 		view.setFitHeight(img.getHeight()*cardScaler);
 		view.setFitWidth(img.getWidth()*cardScaler);
 		view.setSmooth(true);
 		label.setGraphic(view);
 	}
 	
-	/** 
-	 * setSpecialImage(Label, char) sets the top card image to the backside of a card carddeck
-	 * @param stack
+	/**
+	 * sets the image of a label to the backside of a card or a joker (empty stack image) 
+	 * @param label the label to put a special image on
+	 * @param imgToShow the type of special image to use
+	 * @return True if image was successfully loaded and applied, false otherwise
 	 */
-	public static boolean setSpecialImage(Label label, char imgToShow) {
+	public static boolean setSpecialImage(Label label, SPECIALIMAGE imgToShow) {
 		String imgDir = SolConst.IMGDIR;
 		String fileName;
 		Image img;
 				
 		switch (imgToShow) {
-		case 'b' -> fileName = "1B";
-		case 'e' -> fileName = "2J"; //empty stack
+		case BACK -> fileName = "1B";
+		case EMPTY -> fileName = "2J"; //we use a jack for empty stacks because I'm not a graphical artist
 		default -> throw new IllegalArgumentException("Illegal image to show: " + imgToShow);
 		}
 		try {

@@ -3,6 +3,7 @@ package solitaire.fxui;
 import solitaire.model.GameBoard;
 import solitaire.model.SolConst;
 import solitaire.model.SolConst.SType;
+import solitaire.fxui.LabelGraphics.SPECIALIMAGE;
 import solitaire.logging.ILogger;
 import solitaire.model.Card;
 import solitaire.model.CardDeck;
@@ -79,6 +80,19 @@ public class SolitaireController  {
 	private List<Label> getDeckLabel() {
 		return labels.get(SType.DECK);
 	}
+	public void setStage(Stage stage) {
+		this.stage = stage;
+	}	
+	/**
+	 * Wrapper function for LabelGraphics' setSpecialImage that also log an error message if the image was not loaded correctly
+	 * @param label The label to set an imageview to
+	 * @param type
+	 */
+	private void setSpecialImageforLabel(Label label, SPECIALIMAGE type) {
+		boolean labelSetCorrectly = LabelGraphics.setSpecialImage(label, type);
+		if (!labelSetCorrectly)
+			statusBarController.log(ILogger.ERROR, StatusBarController.LOADGRAPHICSERROR, null);
+	}
 
 	@FXML
 	private void initialize() {
@@ -88,10 +102,10 @@ public class SolitaireController  {
 		
 		Root.widthProperty().addListener(e -> {
 			for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) 
-				pTranslate(getPlayStackLabels(i),i);
+				playStackTranslate(getPlayStackLabels(i),i);
 			for (int i = 0; i < SolConst.SUITS; i++)
-				fTranslate(getFinalStackLabels(i), i);
-			deckTranslate(0);
+				finalStackTranslate(getFinalStackLabels(i), i);
+			deckAndThrowStackTranslate(0);
 		});		
 	}
 	
@@ -137,14 +151,8 @@ public class SolitaireController  {
 			getDeckLabel().clear();
 			getDeckLabel().add(new Label(null));
 		Deck.getChildren().add(getDeckLabel().get(0));
-		setSpecialImageforLabel(getDeckLabel().get(0), 'b');
+		setSpecialImageforLabel(getDeckLabel().get(0), SPECIALIMAGE.BACK);
 		updateBoard();
-	}
-	
-	private void setSpecialImageforLabel(Label label, char type) {
-		boolean labelSetCorrectly = LabelGraphics.setSpecialImage(label, type);
-		if (!labelSetCorrectly)
-			statusBarController.log(ILogger.ERROR, StatusBarController.LOADGRAPHICSERROR, null);
 	}
 	
 	@FXML
@@ -160,23 +168,29 @@ public class SolitaireController  {
 		statusBarController.log(ILogger.FINE, cardsDealt + " cards dealt", null);
 		updateDeck();
 		updateThrowStack();
-		deckTranslate(cardsDealt);
+		deckAndThrowStackTranslate(cardsDealt);
 	}
 	
 	@FXML void undo() {
 		try {board.undo();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null); return;}
+		int visibleCards = visibleCardsInThrowStack();
 		updateBoard();
 		Undo.setText("Redo");
 		Undo.setOnAction(e -> redo());
-		//deckTranslate();
+		if (board.getLastFromStack().getStackName().equals(SType.THROWSTACK) && visibleCards < 3)
+			visibleCards++;
+		deckAndThrowStackTranslate(visibleCards);
 		Undo.setAccelerator(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN));
 	}
 	
 	private void redo() {
 		try {board.redo();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null); return;}
+		int visibleCards = visibleCardsInThrowStack();
 		updateBoard();
 		canUndo();
-		//deckTranslate();
+		if (board.getLastFromStack().getStackName().equals(SType.THROWSTACK) && visibleCards > 1)
+			visibleCards--;
+		deckAndThrowStackTranslate(visibleCards);
 	}
 	
 	private void canUndo() {
@@ -184,6 +198,22 @@ public class SolitaireController  {
 		Undo.setText("Undo");
 		Undo.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN));
 		Undo.setOnAction(e -> undo());
+	}
+	
+	private int visibleCardsInThrowStack() {
+		int count = 0;
+		for (Label l : getThrowStackLabels()) {
+			if (l.getTranslateX() > 0)
+				count++;
+		}
+		//TODO: Uncomment if last move involved the throwstack?
+		if (getThrowStackLabels().size() > 1 )
+			count++;
+		//if (/*board.getLastFromStack().getStackName() == SType.THROWSTACK ||*/ board.getLastToStack().getStackName() == SType.THROWSTACK)
+			//count++;*/
+		if (count > 3)
+			count = 3;
+		return count;
 	}
 
 	public void promptSave() { 
@@ -236,6 +266,7 @@ public class SolitaireController  {
 	 * Stops winAnimate if it is not null, and then overwrites the reference to it with null
 	 */
 	private void stopWinAnimation() {
+		Solve.setDisable(false);
 		if (winAnimate != null) {
 			winAnimate.stop();
 			stage.setResizable(true);
@@ -247,9 +278,9 @@ public class SolitaireController  {
 	 */
 	private void updateDeck() {
 		if (board.drawStackEmpty()) {
-			setSpecialImageforLabel(getDeckLabel().get(0),'e');
+			setSpecialImageforLabel(getDeckLabel().get(0),SPECIALIMAGE.EMPTY);
 		} else {
-			setSpecialImageforLabel(getDeckLabel().get(0),'b');
+			setSpecialImageforLabel(getDeckLabel().get(0),SPECIALIMAGE.BACK);
 		}
 	}
 
@@ -284,10 +315,10 @@ public class SolitaireController  {
 				}
 			} else {
 				if (labelIndex == 0) {
-					setSpecialImageforLabel(stackLabels.get(labelIndex), 'e');
+					setSpecialImageforLabel(stackLabels.get(labelIndex), SPECIALIMAGE.EMPTY);
 				}
 				else {
-					setSpecialImageforLabel(stackLabels.get(labelIndex),'b');
+					setSpecialImageforLabel(stackLabels.get(labelIndex),SPECIALIMAGE.BACK);
 				}
 				if (cardIndex == stack.size() - 1 && labelIndex != 0)
 					stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> revealCard(stack));
@@ -314,7 +345,7 @@ public class SolitaireController  {
 		PlayStacks.getChildren().clear();
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
 			updateStack(getPlayStackLabels(i), board.getPlayStack(i), PlayStacks, i);
-			pTranslate(getPlayStackLabels(i), i);
+			playStackTranslate(getPlayStackLabels(i), i);
 		}
 	}
 	/**
@@ -324,7 +355,7 @@ public class SolitaireController  {
 		FinalStacks.getChildren().clear();
 		for (int i = 0; i < SolConst.SUITS; i++) {
 			updateStack(getFinalStackLabels(i), board.getFinalStack(i), FinalStacks, i);
-			fTranslate(getFinalStackLabels(i), i);
+			finalStackTranslate(getFinalStackLabels(i), i);
 		}
 	}
 
@@ -381,7 +412,7 @@ public class SolitaireController  {
 			board.moveToFinalStacks(stack.peek(), stack);
 		} catch (Exception e) {
 			;	//We ignore exceptions because this indicates that the top card cannot be legally moved to a final stack (IllegalArgument), 
-				//or the stack is empty (IndexOutOfBounds) 
+				//or the stack is empty (IndexOutOfBounds) (the user shouldn't be overloaded with messages, and only needs to see that the card isn't moved anywhere)
 		}
 		if (count != stack.getCardCount())
 			return true;
@@ -389,10 +420,11 @@ public class SolitaireController  {
 	}
 	
 	/**
-	 * Disables 
+	 * Disables undo and solve buttons, and makes the window fixed in size before starting a win animation
 	 */
 	private void finishGameAndStartWinAnimation() {
 		Undo.setDisable(true);
+		Solve.setDisable(true);
 		//winAnimation depends on the edges of the window to be static to look right
 		stage.setResizable(false);
 
@@ -402,7 +434,8 @@ public class SolitaireController  {
 			for (Label l: list) {
 				l.setOnMouseClicked(null);
 				l.setOnDragDetected(null);
-				//Move the remaining cards to Root, so we can use getParent in winAnimate to get window size
+				//I move all the cards in all final stacks from FinalStacks Pane too our Root Pane, so that we can use the size of
+				//the parent for all the cards (now Root) to get the edges of our window (for collision detection)
 				if (list.get(0) != l) {
 					double posX = l.getParent().getLayoutX() + l.getTranslateX();
 					Root.getChildren().add(l);
@@ -424,12 +457,13 @@ public class SolitaireController  {
 			width = (int) Root.getPrefWidth();
 		return width;
 	}
+	
 	/**
-	 * Translates the final stacks to correct position
+	 * Translates a final stack to correct position
 	 * @param l List of labels that represents a final stack
-	 * @param i the number 
+	 * @param i the index of the final stack (0-3)
 	 */
-	private void fTranslate(List<Label> l, int i) {
+	private void finalStackTranslate(List<Label> l, int i) {
 		if (i < 0 || i >= SolConst.SUITS)
 			throw new IllegalArgumentException("The index of the final stack must be between 0 and " + (SolConst.SUITS - 1));
 		int width = windowWidth();
@@ -442,7 +476,11 @@ public class SolitaireController  {
 			label.setTranslateX(xFactor*i);
 	}
 	
-	private void deckTranslate(int cardsDealt) {	
+	/**
+	 * translates the deck and throwStack to correct positon, and shows the top cards of the throwStack 
+	 * @param cardsDealt maximum number of cards to show from the throwStack
+	 */
+	private void deckAndThrowStackTranslate(int cardsDealt) {	
 		int width = windowWidth();
 		int xOffset = (int) (width/35);
 		float xFactor = (float) (width/7.35);
@@ -457,7 +495,12 @@ public class SolitaireController  {
 				getThrowStackLabels().get(i + tsize - cardsDealt).setTranslateX(12*(i));
 	}
 	
-	private void pTranslate(List<Label> l, int i) {
+	/**
+	 * Translates a play stack to correct position
+	 * @param l List of labels that represents a play stack
+	 * @param i the index of the final stack (0-6)
+	 */	
+	private void playStackTranslate(List<Label> l, int i) {
 		int width = windowWidth();
 		int xOffset = (int) (width/35);
 		float xFactor = (float) (width/7.35);
@@ -482,10 +525,10 @@ public class SolitaireController  {
 	 * This method is called when a dragEvent is detected on certain cards and puts a string on this events
 	 * dragboard, as well as showing the card being dragged
 	 * @param event
-	 * @param l
-	 * @param indexOfStacks
-	 * @param indexOfList
-	 * @param stackName
+	 * @param l Label being dragged
+	 * @param indexOfStacks the index of the stack (if playStack or finalStack)
+	 * @param indexOfList the index of the label IN the stack
+	 * @param stackName the stackName of the stack the label is in
 	 */
 	private void dragDetected(MouseEvent event, Label l, int indexOfStacks, int indexOfList, SolConst.SType stackName) {
 		WritableImage img;
@@ -539,8 +582,7 @@ public class SolitaireController  {
 	    event.consume();
 	}
 	
-	/** dragOverEvent makes the target able to accept cards
-	 */
+	/** dragOverEvent makes the target able to accept cards */
 	EventHandler <DragEvent> dragOverEvent = new EventHandler <DragEvent>() {
         public void handle(DragEvent event) {
             event.acceptTransferModes(TransferMode.MOVE);
@@ -549,9 +591,7 @@ public class SolitaireController  {
         }
 	};
 	
-	/**
-	 * dragDoneEvent sets the label visible again (triggered when card is dropped on a non-target)
-	 */
+	/** dragDoneEvent sets the label visible again (triggered when card is dropped on a non-target) */
 		EventHandler <DragEvent> dragDoneEvent = new EventHandler <DragEvent>() {
 	        public void handle(DragEvent event) {
 				for (Node label : PlayStacks.getChildren())
@@ -613,22 +653,25 @@ public class SolitaireController  {
 		updateBoard();
 	}
 
+	/**
+	 * Tries to move the top card of a cardStack to the final stacks
+	 * @param event The event of doubleclicking 
+	 * @param stack The stack to attempt to move the top card from
+	 */
 	private void doubleClickCard(MouseEvent event, CardStack stack) {
 		if (event.getButton().equals(MouseButton.PRIMARY)){
             if (event.getClickCount() == 2) {
             	Card card = stack.peek();            	
             	if (tryMoveTopCardToFinalStack(stack)) {
+            		statusBarController.log(ILogger.FINE, "Card moved to a final stack: " + card, null);
             		canUndo();
             		statusBarController.clearStatusBar();
             		updateBoard();
-            		statusBarController.log(ILogger.FINE, "Card moved to a final stack: " + card, null);
             	} else {
             		statusBarController.log(ILogger.WARNING, "No final stack to legally move " + card + " to.", null);
             	} 
             }
         }
 	}
-	public void setStage(Stage stage) {
-		this.stage = stage;
-	}
+	
 }

@@ -43,6 +43,11 @@ public class GameBoard {
 			stacks.put(SType.valueOf("F" + i), new CardStack(SType.valueOf("F" + i)));
 	}
 	
+	/**
+	 * This constructor takes a map of a gameboard and starts a game with the cards in the position specified in that map
+	 * after checking that the map has the correct number of cards in a legal configuration
+	 * @param map the map to verify and load
+	 */
 	public GameBoard(Map<SType, CardContainer> map) {
 		if (map.size() != 13)
 			throw new IllegalArgumentException("The stack map has too many stacks");
@@ -56,13 +61,14 @@ public class GameBoard {
 			for (Card card : stack) {
 				for (Card c2 : allCardsOfGame) {
 					if (card.equals(c2))
-						throw new IllegalArgumentException("Duplicate cards in file");
+						throw new IllegalArgumentException("Duplicate cards in stack map");
 				}
 				allCardsOfGame.add(card);
 			}
 		}
-		if (allCardsOfGame.size() != SolConst.SUITS * SolConst.CARDSINSUIT)
-			throw new IllegalArgumentException("Wrong number of cards in stack: ");
+		int legalCardsTotal = SolConst.SUITS * SolConst.CARDSINSUIT;
+		if (allCardsOfGame.size() != legalCardsTotal)
+			throw new IllegalArgumentException("The map has " + allCardsOfGame.size() + " cards, but it should have " + legalCardsTotal + " cards." );
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
 			if (((CardStack) map.get(SType.valueOf("P" + i))).getHiddenCards() > i)
 				throw new IllegalArgumentException("The stack map contains stacks with too many hidden cards");
@@ -85,12 +91,17 @@ public class GameBoard {
 	private CardDeck getDeck() {
 		return (CardDeck) stacks.get(SType.DECK);
 	}
+	
+	public CardContainer getLastFromStack() {
+		return lastFromStack;
+	}
+
+	public CardContainer getLastToStack() {
+		return lastToStack;
+	}
 
 	public boolean drawStackEmpty() {
-		if (getDeck().isEmpty())
-			return true;
-		else 
-			return false;
+		return getDeck().isEmpty();
 	}
 
 	@Override
@@ -101,7 +112,7 @@ public class GameBoard {
 			if (key.charAt(0) == 'P')
 				game += (key + ":" + ((CardStack) stack.getValue()).getHiddenCards() + ":" + stack.getValue() + "\n");
 			else 
-				game += (key + ":" + ":" + stack.getValue() + "\n");
+				game += (key + "::" + stack.getValue() + "\n");
 		}
 		return game;
 	}
@@ -219,13 +230,15 @@ public class GameBoard {
 			}
 			return false;
 		}
+		default -> {return false;}
 		}
-		throw new IllegalStateException(String.format("How did we get here? card: %s fromStack: %s toStack: %s", card, fromStack, toStack));
-		//return false;
 	}
 	
 	/**
-	 * saveMove updates variables used to undo 
+	 * saveMove updates variables used to undo
+	 * @param from the stack the last card was moved from
+	 * @param to the stack the last card was moved to
+	 * @param indexInToStack the index of the card in the stack it was moved to
 	 */
 	private void saveMove(CardContainer from, CardContainer to, int indexInToStack) {
 		if (indexInToStack < 0 || indexInToStack > to.getCardCount()) 
@@ -241,7 +254,7 @@ public class GameBoard {
 			throw new IllegalStateException("The last move is not recorded, or no moves have been made");
 		try {
 			int tempIndex = lastFromStack.getCardCount();
-			if (lastToStack.getClass() == CardStack.class) 
+			if (lastToStack instanceof CardStack) 
 				((CardStack) lastToStack).play(lastFromStack, indexOfLastMove);
 			else {
 				if (getThrowStack().size() == 0 && getDeck().size() > 0) {
@@ -250,10 +263,9 @@ public class GameBoard {
 					((CardDeck) lastToStack).deal((CardStack) lastFromStack, indexOfLastMove);
  			}
 			indexOfLastMove = tempIndex;
-			} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException("You can only undo the last move");
-			}
-		
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("You can only undo the last move");
+		}
 	}
 	
 	public void redo() {
@@ -324,8 +336,13 @@ public class GameBoard {
 		swapWhileRetainingOrder(getThrowStack(), getDeck());
 	}
 	
+	/**
+	 * This puts all of the cards in one stack in another, initially empty stack 
+	 * @param from
+	 * @param to
+	 */
 	private void swapWhileRetainingOrder(CardContainer from, CardContainer to) {
-		if (to == from) return;
+		if (!to.isEmpty() || to == from) return;
 		while (from.size() > 0) {
 			for (int i = 0; i < SolConst.CARDSTODEAL; i++) {
 				if (from.isEmpty()) break;
