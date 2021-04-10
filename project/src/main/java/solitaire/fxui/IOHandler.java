@@ -22,14 +22,28 @@ public class IOHandler implements IFileReadWrite {
 	
 	public final static String SAVEEXT = "sol";
 	
+	/**
+	 * Returns the path to the save folder (%APPDATA%\Solitaire on Windows), user.home/Solitaire otherwise
+	 */
 	private Path getSaveFolderPath() {
-		return Path.of(System.getenv("APPDATA"), "Solitaire");
+		//I chose to save to appdata on windows because it is more frowned upon on windows to create subdirectories
+		//directly in user folder (and personal preference), and appdata was easy to get on all localised Windows system.
+		if (System.getProperty("os.name").toLowerCase().contains("win"))
+			return Path.of(System.getenv("APPDATA"), "Solitaire");
+		return Path.of(System.getProperty("user.home"), "Solitaire");
 	}
 	
+	/**
+	 * Returns the path to a file in our save directory
+	 * @param filename the name of the file (without file extension)
+	 */
 	private Path getSavePath(String filename) {
 		return getSaveFolderPath().resolve(filename + "." + SAVEEXT);
 	}
 	
+	/**
+	 * Ensures that our save directory exists
+	 */
 	private void createSaveFolder() {
 		if (Files.notExists(getSaveFolderPath())) {
             try {
@@ -44,12 +58,14 @@ public class IOHandler implements IFileReadWrite {
     public void writeToFile(GameBoard board) {
         createSaveFolder();
         try {
-            PrintWriter writer = new PrintWriter(getSavePath("Save").toFile());
+            String filename = "Save";
+			PrintWriter writer = new PrintWriter(getSavePath(filename).toFile());
             writer.write(board.toString());
             writer.flush();
             
             writer.close();
         } catch (FileNotFoundException e) {
+			//TODO: LOG PROPERLY (Throw exception here, let the controller log it)
             e.printStackTrace();
         }    
     }
