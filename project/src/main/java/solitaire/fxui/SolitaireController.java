@@ -45,7 +45,7 @@ import javafx.stage.StageStyle;
 public class SolitaireController  {
 	
 	private final IOHandler ioHandler = new IOHandler();
-	private final static String filename = "Save";
+	private static final String FILENAME = "Save";
 	
 	@FXML private AnchorPane Root;
 	@FXML private AnchorPane PlayStacks;
@@ -147,9 +147,10 @@ public class SolitaireController  {
 		labels.put(SType.THROWSTACK, new ArrayList<Label>()); 
 		
 		labels.put(SType.DECK, new ArrayList<Label>());
-		if (getDeckLabel().size() == 0 || getDeckLabel().size() > 1)
+		if (getDeckLabel().size() != 1) {
 			getDeckLabel().clear();
 			getDeckLabel().add(new Label(null));
+		}
 		Deck.getChildren().add(getDeckLabel().get(0));
 		setSpecialImageforLabel(getDeckLabel().get(0), SPECIALIMAGE.BACK);
 		updateBoard();
@@ -252,7 +253,7 @@ public class SolitaireController  {
 	
 	public void loadGame() {
 		try {
-			this.board = ioHandler.loadGame(filename);
+			this.board = ioHandler.loadGame(FILENAME);
 			statusBarController.log(ILogger.INFO, StatusBarController.LOADSUCCESS, null);
 		} catch (IllegalArgumentException e) {
 			statusBarController.log(ILogger.ERROR, StatusBarController.SAVEFILECORRUPT, e);

@@ -37,7 +37,6 @@ public class SolitaireApp extends Application {
     }
 
     public void appExit() throws Exception {
-    	
     	controller.promptSave();
         super.stop();
     }
