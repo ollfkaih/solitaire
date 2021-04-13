@@ -7,9 +7,9 @@ import solitaire.model.Card;
 import solitaire.model.SolConst;
 
 public final class LabelGraphics {
-	private final static String IMAGEEXTENSION = ".png";
-	private final static float cardScaler = (float) (1/2.9);
-	public static enum SPECIALIMAGE {BACK,EMPTY}; 
+	private static final String IMAGEEXTENSION = ".png";
+	private static final float CARDSCALER = (float) (1/2.9);
+	public enum SPECIALIMAGE {BACK,EMPTY}; 
 
 	/**
 	 * Creates an imageview of an image and assigns that to the given label
@@ -20,8 +20,8 @@ public final class LabelGraphics {
 		if (img == null)
 			throw new IllegalArgumentException("Card image must not be null");
 		ImageView view = new ImageView(img);
-		view.setFitHeight(img.getHeight()*cardScaler);
-		view.setFitWidth(img.getWidth()*cardScaler);
+		view.setFitHeight(img.getHeight()*CARDSCALER);
+		view.setFitWidth(img.getWidth()*CARDSCALER);
 		view.setSmooth(true);
 		label.setGraphic(view);
 	}
@@ -36,10 +36,11 @@ public final class LabelGraphics {
 		String imgDir = SolConst.IMGDIR;
 		String fileName;
 		Image img;
-				
+
+		label.setGraphic(null);
 		switch (imgToShow) {
 		case BACK -> fileName = "1B";
-		case EMPTY -> fileName = "2J"; //we use a jack for empty stacks because I'm not a graphical artist
+		case EMPTY -> fileName = "emptyCard";
 		default -> throw new IllegalArgumentException("Illegal image to show: " + imgToShow);
 		}
 		try {

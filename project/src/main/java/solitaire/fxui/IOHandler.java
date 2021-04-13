@@ -20,12 +20,12 @@ import java.util.TreeMap;
 
 public class IOHandler implements IFileReadWrite {
 	
-	public final static String SAVEEXT = "sol";
+	public static final String SAVEEXT = "sol";
 	
 	/**
 	 * Returns the path to the save folder (%APPDATA%\Solitaire on Windows), user.home/Solitaire otherwise
 	 */
-	private Path getSaveFolderPath() {
+	private static final Path getSaveFolderPath() {
 		//I chose to save to appdata on windows because it is more frowned upon on windows to create subdirectories
 		//directly in user folder (and personal preference), and appdata was easy to get on all localised Windows system.
 		if (System.getProperty("os.name").toLowerCase().contains("win"))
@@ -37,7 +37,7 @@ public class IOHandler implements IFileReadWrite {
 	 * Returns the path to a file in our save directory
 	 * @param filename the name of the file (without file extension)
 	 */
-	private Path getSavePath(String filename) {
+	private static final Path getSavePath(String filename) {
 		return getSaveFolderPath().resolve(filename + "." + SAVEEXT);
 	}
 	

@@ -3,6 +3,7 @@ package solitaire.fxui;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import solitaire.model.SolConst;
 
@@ -18,6 +19,9 @@ public class SolitaireApp extends Application {
     	controller = (SolitaireController) loader.getController();
     	stage.setTitle("Solitaire"); //fallback
         stage.setScene(new Scene(loader.getRoot()));
+        try {
+        stage.getIcons().add(new Image(SolitaireController.class.getResourceAsStream("img/icon.png")));
+        } catch (Exception e) {}
         stage.show();	
         stage.setOnCloseRequest(event -> {
 			try {

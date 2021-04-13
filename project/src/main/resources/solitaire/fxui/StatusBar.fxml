@@ -2,5 +2,4 @@
 
 <?import javafx.scene.layout.HBox?>
 
-
-<HBox fx:id="BottomBar" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="bottom-bar" stylesheets="@BottomBar.css" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="solitaire.fxui.StatusBarController" />
+<HBox fx:id="BottomBar" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="bottom-bar" stylesheets="@Bars.css" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="solitaire.fxui.StatusBarController" />

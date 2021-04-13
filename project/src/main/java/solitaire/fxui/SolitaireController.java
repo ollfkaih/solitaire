@@ -98,6 +98,7 @@ public class SolitaireController  {
 	private void initialize() {
 		newGame.setAccelerator(new KeyCodeCombination(KeyCode.F2));
 		Undo.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN));
+		Solve.setAccelerator(new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN));
 		startNewGame();
 		
 		Root.widthProperty().addListener(e -> {
@@ -130,29 +131,25 @@ public class SolitaireController  {
 	 */
 	private void resetBoardLabels() {
 		stopWinAnimation();
-		FinalStacks.getChildren().clear();
-		PlayStacks.getChildren().clear();
-		ThrowStack.getChildren().clear();
+		//Clear the board 
+		for (Pane anchorPane : new Pane[] {FinalStacks,PlayStacks,ThrowStack,Deck})
+			anchorPane.getChildren().clear();
 		labels.clear();
-		
-		Undo.setText("Undo");
-		Undo.setOnAction(e -> undo());
+
+		//Set correct text for undo, but disable it (until first move)
+		canUndo();
 		Undo.setDisable(true);
 		
 		for (int i = 0; i < SolConst.SUITS; i++) 
 			labels.put(SType.valueOf("F" + i), new ArrayList<Label>());
 		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) 
 			labels.put(SType.valueOf("P" + i), new ArrayList<Label>());
-		
 		labels.put(SType.THROWSTACK, new ArrayList<Label>()); 
-		
 		labels.put(SType.DECK, new ArrayList<Label>());
-		if (getDeckLabel().size() != 1) {
-			getDeckLabel().clear();
-			getDeckLabel().add(new Label(null));
-		}
-		Deck.getChildren().add(getDeckLabel().get(0));
-		setSpecialImageforLabel(getDeckLabel().get(0), SPECIALIMAGE.BACK);
+
+		getDeckLabel().add(0, new Label(null));
+		Deck.getChildren().add(0, getDeckLabel().get(0));
+		
 		updateBoard();
 	}
 	
@@ -207,11 +204,8 @@ public class SolitaireController  {
 			if (l.getTranslateX() > 0)
 				count++;
 		}
-		//TODO: Uncomment if last move involved the throwstack?
 		if (getThrowStackLabels().size() > 1 )
 			count++;
-		//if (/*board.getLastFromStack().getStackName() == SType.THROWSTACK ||*/ board.getLastToStack().getStackName() == SType.THROWSTACK)
-			//count++;*/
 		if (count > 3)
 			count = 3;
 		return count;
