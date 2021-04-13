@@ -116,7 +116,7 @@ public class GameBoard {
 		}
 		return game;
 	}
-			
+
 	/**
 	 * isCardFree is used by legalMove to determine if a card can be moved
 	 */
@@ -124,43 +124,30 @@ public class GameBoard {
 		if (!fromStack.contains(card)) 
 			throw new IllegalArgumentException("The card " + card + " is not in " + fromStack.toString());
 		if (getDeck().contains(card)) {
-			System.out.println(getDeck());
 			return false;
 		} else if (fromStack.getCard(fromStack.getCardCount() - 1).equals(card)) {
 			return true;
 		} else if (fromStack.getStackName().toString().charAt(0) == 'P') {
 			for (int i = fromStack.indexOf(card); i < fromStack.getCardCount() - 1; i++) {
 				//Check that the card on top is a different color and face value one less
-				//If the cards follow the rules, each switch ends with a break statement, and if we never hit a condition not allowed, we "avoid" 
-				//the return statements until the for loop has completed and we end up at the return true statement
-				switch (fromStack.getCard(i).getSuit()) {
-				case 'D', 'H' -> {
-					switch (fromStack.getCard(i + 1).getSuit()) {
-					case 'D', 'H' -> {
+				//If the cards of the fromStack follow the rules, we avoid the return false statements
+				//and end up at the return true after the for loop
+				if (fromStack.getCard(i).isRed()) {
+					if (fromStack.getCard(i + 1).isRed()) {
 						return false;
-					} 
-					case 'S', 'C' -> {
+					} else {
 						if (fromStack.getCard(i + 1).getFace() != fromStack.getCard(i).getFace() - 1)
 							return false;
-						else
-							break;
 					}
-					}
-				} case 'S', 'C' -> {
-					switch (fromStack.getCard(i + 1).getSuit()) {
-					case 'S', 'C' -> {
-						return false;
-					} 
-					case 'D', 'H' -> {
+				} else {
+					if (fromStack.getCard(i + 1).isRed()) {
 						if (fromStack.getCard(i + 1).getFace() != fromStack.getCard(i).getFace() - 1)
 							return false;
-						else
-							break;
-					}
+					} else {
+						return false;
 					}
 				}
-				}	
-			} 
+			}
 			return true;
 		}
 		return false;

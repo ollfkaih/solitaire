@@ -1,11 +1,8 @@
 package solitaire.model;
 
-import java.util.Iterator;
-import java.util.Stack;
-import java.util.function.Predicate;
+import solitaire.model.SolConst.SType;
 
-public class CardStack extends Stack<Card> implements CardContainer {
-	
+public class CardStack extends CardContainer {
 	private static final long serialVersionUID = 1L;
 	private int hiddenCards = 0;
 	private final SolConst.SType stackName;
@@ -16,8 +13,8 @@ public class CardStack extends Stack<Card> implements CardContainer {
 	 * @param cards The cards to add
 	 */
 	public CardStack(SolConst.SType stackName, Card...cards) {
-		if (stackName == null)
-			throw new IllegalArgumentException("Stackname must be an SType");
+		if (stackName == null || stackName == SType.DECK)
+			throw new IllegalArgumentException("Stackname must be an SType other than DECK");
 		this.stackName = stackName;
 		for (Card card: cards)
 			this.addCard(card);
@@ -60,11 +57,7 @@ public class CardStack extends Stack<Card> implements CardContainer {
 		else 
 			throw new IllegalArgumentException("The top card must be hidden to reveal hidden cards");
 	}
-	
-	public int getCardCount() {
-		return this.size();
-	}
-	
+	@Override
 	/**
 	 * getCard(int index) returns the card at index n, if it is not hidden
 	 * @param n Index of card to get 
@@ -89,21 +82,13 @@ public class CardStack extends Stack<Card> implements CardContainer {
 		else
 			return false;
 	}
-	
-	/**
-	 * Puts a card on top of this stack
-	 */
-	public void addCard(Card card) {		
-		this.push(card);
-	}
 
 	/**
 	 * play(CardStack, int) will move the top cards including indexOfCard to any other stack (all validation of rules is done in GameBoard)
 	 */
 	 public void play(CardContainer stack, int indexOfCard) {
-		if (indexOfCard < 0 || indexOfCard > this.size() - 1) {
+		if (indexOfCard < 0 || indexOfCard > this.size() - 1) 
 			throw new IllegalArgumentException("Cannot play card at index larger than stack size");
-		}
 		
 		if (this == stack)
 			throw new IllegalArgumentException("Cannot move a card to itself");
@@ -113,31 +98,5 @@ public class CardStack extends Stack<Card> implements CardContainer {
 			this.remove(indexOfCard);
 			stack.addCard(tempCard);
 		}
-	}
-	
-	@Override
-	public Iterator<Card> iterator() {
-		return new CardContainerIterator(this);
-	}
-	
-	boolean hasCard(Predicate<Card> predicate) {
-		return this.stream().anyMatch(predicate);
-	}
-		
-	long getCardCount(Predicate<Card> predicate) {
-		return this.stream().filter(predicate).count();
-	}
-		
-	@Override
-	public String toString() {
-		String string = "";
-		Iterator<Card> iterator =  this.iterator();
-		while (iterator.hasNext()) {
-			if (string.length() == 0)
-				string += iterator.next();
-			else
-				string += "," + iterator.next();
-		}
-		return string;
 	}
 }

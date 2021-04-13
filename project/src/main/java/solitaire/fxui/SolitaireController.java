@@ -310,7 +310,7 @@ public class SolitaireController  {
 				boolean labelSetCorrectly = LabelGraphics.setCardImage(stackLabels.get(labelIndex), card);
 				if (!labelSetCorrectly)
 					statusBarController.log(ILogger.ERROR, StatusBarController.LOADGRAPHICSERROR, null);
-				if (labelIndex != 0 && stack.getStackName().toString().charAt(0) != 'T' || cardIndex == stack.getCardCount() - 1) {
+				if (labelIndex != 0 && stack.getStackName() != SType.THROWSTACK || cardIndex == stack.getCardCount() - 1) {
 					stackLabels.get(labelIndex).setOnDragDetected((MouseEvent event) -> dragDetected(event, stackLabels.get(labelj), i, cardIndex, stack.getStackName()));
 	    			stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> doubleClickCard(event, stack));
 				}
@@ -325,10 +325,10 @@ public class SolitaireController  {
 					stackLabels.get(labelIndex).setOnMouseClicked((MouseEvent event) -> revealCard(stack));
 			}
 	    	stackLabels.get(labelIndex).setOnDragDone(dragDoneEvent);
-			if (stack.getStackName().toString().charAt(0) != 'T') {
+			if (stack.getStackName() != SType.THROWSTACK) {
 				stackLabels.get(labelIndex).setOnDragOver(dragOverEvent);
 				//All cards should be droptargets; if you drop a card on a hidden card, the drop() method attempts to put it at the top of this stack
-				stackLabels.get(labelIndex).setOnDragDropped((DragEvent event) -> drop(event, stackLabels.get(labelj), i, cardIndex));
+				stackLabels.get(labelIndex).setOnDragDropped((DragEvent event) -> drop(event, stackLabels.get(labelj), i));
 			}
 	    	LabelParent.getChildren().add(stackLabels.get(labelIndex));
 		}
@@ -537,8 +537,6 @@ public class SolitaireController  {
 		double scale = Screen.getPrimary().getOutputScaleX();
 		SnapshotParameters snapshotParameters = new SnapshotParameters();
 		snapshotParameters.setTransform(Transform.scale(scale, scale));
-		//Rectangle2D rect = new Rectangle2D(scale, indexOfStacks, indexOfList, scale)
-		//snapshotParameters.setViewport();
 		draggedLabel = l;
 		dragParentCardStack = (CardStack) board.getStackbyName(stackName);
 		String dbFromStack = "" + ((char) (stackName.toString().charAt(0))) + indexOfStacks + indexOfList;
@@ -549,9 +547,8 @@ public class SolitaireController  {
 
 		for (Map.Entry<SolConst.SType, List<Label>> labellist : labels.entrySet()) {
 			SType key = labellist.getKey();
-			if (key.equals(SType.THROWSTACK) || key.toString().charAt(0) == SType.F0.toString().charAt(0))
-				if (labellist.getValue().contains(l))
-					ignoreCardsOnTop = true;
+			if ((key.equals(SType.THROWSTACK) || key.toString().charAt(0) == SType.F0.toString().charAt(0)) && labellist.getValue().contains(l))
+				ignoreCardsOnTop = true;
 		}
 	 
 		if (ignoreCardsOnTop) {
@@ -620,7 +617,7 @@ public class SolitaireController  {
 	 * @param indexOfStacks index of which final/play stack to drop on
 	 * @param indexOfList index of the card to move (in the stack it is in before move)
 	 */
-	private void drop(DragEvent event, Label label, int indexOfStacks, int indexOfList) {
+	private void drop(DragEvent event, Label label, int indexOfStacks) {
 		event.consume();
 		statusBarController.clearStatusBar();
 		Dragboard db = event.getDragboard();
@@ -648,7 +645,7 @@ public class SolitaireController  {
 				board.moveCard(inStackIndex, dragParentCardStack, board.getFinalStack(indexOfStacks));
 			}}
 		} catch (Exception e) {
-			statusBarController.log(ILogger.WARNING, "Not a legal move", e);;
+			statusBarController.log(ILogger.WARNING, "Not a legal move", e);
 		}
 		canUndo();
 		updateBoard();

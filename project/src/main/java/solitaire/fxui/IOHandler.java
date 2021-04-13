@@ -82,24 +82,24 @@ public class IOHandler implements IFileReadWrite {
         	SolConst.SType stackName = SolConst.SType.valueOf(items[0]);
         	CardStack stack;
         	
-        	Stack<Card> tempStack = new Stack<Card>();
+        	Stack<Card> tempStack = new Stack<>();
         	if (items.length == 3) {
-        		String[] cards = items[2].replace(" ","").split(",");
-            	for (String card : cards) {
+        		String[] cardsAsString = items[2].replace(" ","").split(",");
+            	for (String card : cardsAsString) {
             		if (!card.isEmpty())
            				tempStack.add(new Card(card.charAt(0),Integer.valueOf(card.substring(1))));	
            		}
            	}
-        	
-        	if (items[1].isEmpty())
-            	stack = new CardStack(stackName,tempStack.toArray(new Card[0]));
-        	else 
-        		stack = new CardStack(stackName, Integer.parseInt(items[1]), tempStack.toArray(new Card[0]));
-        	
-        	if (stackName.equals(SType.DECK)) 
-        		stacks.put(stackName, new CardDeck(stack));
-        	else 
-        		stacks.put(stackName, stack);
+			Card[] cards = tempStack.toArray(new Card[0]);   
+			if (stackName.equals(SType.DECK)){
+        		stacks.put(stackName, new CardDeck(new CardStack(SType.F0, cards))); 
+			} else {
+				if (items[1].isEmpty())
+            		stack = new CardStack(stackName, cards);
+        		else 
+        			stack = new CardStack(stackName, Integer.parseInt(items[1]), cards);
+				stacks.put(stackName, stack);	
+			}
         }
         scanner.close();
         

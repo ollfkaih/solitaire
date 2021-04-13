@@ -56,11 +56,11 @@ public class CardTest {
 		Card c12 = new Card('C', 12);
 		Card d1 = new Card('D', 1);
 		Card anotherc13 = new Card('C', 13);
-		Assertions.assertEquals(false, c13.equals(c12));
-		Assertions.assertEquals(false, c13.equals(d1));
-		Assertions.assertEquals(false, d1.equals(anotherc13));
-		Assertions.assertEquals(true, c13.equals(anotherc13));
-		Assertions.assertEquals(true, c13.equals(c13));
+		Assertions.assertFalse(c13.equals(c12));
+		Assertions.assertFalse(c13.equals(d1));
+		Assertions.assertFalse(d1.equals(anotherc13));
+		Assertions.assertTrue(c13.equals(anotherc13));
+		Assertions.assertTrue(c13.equals(c13));
 		
 	}
 	
