@@ -23,6 +23,13 @@ public class Card {
 			throw new IllegalArgumentException("Card type must be either S, H, D or C");
 		}
 	}
+
+	/**
+	 * Returns whether or not a card is red (of the suit Diamond or Hearts)
+	 */
+	public boolean isRed() {
+		return "DH".indexOf(this.getSuit()) >= 0;
+	}
 	
 	public char getSuit() {
 		return this.suit;
