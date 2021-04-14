@@ -52,8 +52,8 @@ public class SolitaireController  {
 	@FXML private AnchorPane FinalStacks;
 	@FXML private AnchorPane ThrowStack; 
 	@FXML private AnchorPane Deck;
-	@FXML private MenuBar menubar;
-	@FXML private MenuItem newGame;
+	@FXML private MenuBar MenuBar;
+	@FXML private MenuItem NewGame;
 	@FXML private MenuItem Solve;
 	@FXML private MenuItem Undo;
 	@FXML private HBox statusBar;
@@ -67,6 +67,7 @@ public class SolitaireController  {
 	private CardStack dragParentCardStack;
 	private WinAnimation winAnimate;
 	private Stage stage;
+	private int visibleCardsInThrowStack;
 
 	private List<Label> getFinalStackLabels(int i) {
 		return labels.get(SType.valueOf("F" + i));
@@ -84,7 +85,7 @@ public class SolitaireController  {
 		this.stage = stage;
 	}	
 	/**
-	 * Wrapper function for LabelGraphics' setSpecialImage that also log an error message if the image was not loaded correctly
+	 * Wrapper function for LabelGraphics' setSpecialImage that also logs an error message if the image was not loaded correctly
 	 * @param label The label to set an imageview to
 	 * @param type
 	 */
@@ -96,7 +97,7 @@ public class SolitaireController  {
 
 	@FXML
 	private void initialize() {
-		newGame.setAccelerator(new KeyCodeCombination(KeyCode.F2));
+		NewGame.setAccelerator(new KeyCodeCombination(KeyCode.F2));
 		Undo.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN));
 		Solve.setAccelerator(new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN));
 		startNewGame();
@@ -153,8 +154,7 @@ public class SolitaireController  {
 		updateBoard();
 	}
 	
-	@FXML
-	void clickDeck() {
+	@FXML void clickDeck() {
 		int cardsDealt = 0;
 		try {
 			cardsDealt = board.deal(SolConst.CARDSTODEAL);
@@ -170,25 +170,25 @@ public class SolitaireController  {
 	}
 	
 	@FXML void undo() {
+		int prevVisibleCards = visibleCardsInThrowStack;
 		try {board.undo();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null); return;}
-		int visibleCards = visibleCardsInThrowStack();
 		updateBoard();
 		Undo.setText("Redo");
 		Undo.setOnAction(e -> redo());
-		if (board.getLastFromStack().getStackName().equals(SType.THROWSTACK) && visibleCards < 3)
-			visibleCards++;
-		deckAndThrowStackTranslate(visibleCards);
+		/*if (board.getLastFromStack().getStackName().equals(SType.THROWSTACK) && visibleCards < 3)
+			visibleCards++;*/
+		deckAndThrowStackTranslate(prevVisibleCards);
 		Undo.setAccelerator(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN));
 	}
 	
 	private void redo() {
+		int prevVisibleCards = visibleCardsInThrowStack;
 		try {board.redo();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null); return;}
-		int visibleCards = visibleCardsInThrowStack();
 		updateBoard();
 		canUndo();
-		if (board.getLastFromStack().getStackName().equals(SType.THROWSTACK) && visibleCards > 1)
-			visibleCards--;
-		deckAndThrowStackTranslate(visibleCards);
+		/*if (board.getLastFromStack().getStackName().equals(SType.THROWSTACK) && visibleCards > 1)
+			visibleCards--;*/
+		deckAndThrowStackTranslate(prevVisibleCards);
 	}
 	
 	private void canUndo() {
@@ -199,15 +199,13 @@ public class SolitaireController  {
 	}
 	
 	private int visibleCardsInThrowStack() {
-		int count = 0;
+		int count = 1;
 		for (Label l : getThrowStackLabels()) {
 			if (l.getTranslateX() > 0)
 				count++;
 		}
-		if (getThrowStackLabels().size() > 1 )
-			count++;
-		if (count > 3)
-			count = 3;
+		if (count > SolConst.CARDSTODEAL)
+			count = SolConst.CARDSTODEAL;
 		return count;
 	}
 
@@ -367,6 +365,8 @@ public class SolitaireController  {
 	 * sets the correct card in each final stack and updates the drawing and throw stack.
 	 */
 	private void updateBoard() {
+		visibleCardsInThrowStack = visibleCardsInThrowStack();
+
 		try {updatePlayStacks();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null);}
 		try {updateFinalStacks();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null);}
 		try {updateDeck();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null);}

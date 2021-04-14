@@ -8,6 +8,7 @@ import solitaire.model.GameBoard;
 public interface IFileReadWrite {
 	/**
 	 * Writes a game to file
+	 * @param filename The name of the file to save to
 	 * @param board The GameBoard to write
 	 * @throws FileNotFoundException
 	 */

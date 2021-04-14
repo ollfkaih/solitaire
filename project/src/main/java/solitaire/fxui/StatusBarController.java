@@ -9,8 +9,6 @@ import solitaire.logging.StreamLogger;
 /**
  * A special controller that uses a DistributingLogger to log events 
  * to a label in the game's status bar or to file, depending on event severity
- * @author Olav
- *
  */
 public class StatusBarController {
 	@FXML private HBox BottomBar;

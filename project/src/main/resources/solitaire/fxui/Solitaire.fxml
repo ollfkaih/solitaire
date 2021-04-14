@@ -13,11 +13,11 @@
     <AnchorPane fx:id="FinalStacks" maxWidth="-Infinity" prefHeight="121.0" prefWidth="350.0" AnchorPane.topAnchor="40.0" />
     <AnchorPane fx:id="PlayStacks" prefHeight="319.0" prefWidth="650.0" AnchorPane.topAnchor="160.0" />
     <fx:include fx:id="statusBar" prefHeight="30.0" source="StatusBar.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-    <MenuBar id="menubar" fx:id="menubar" styleClass="menubar" maxHeight="25.0" maxWidth="Infinity" prefHeight="25.0" prefWidth="640.0" stylesheets="@Bars.css" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+    <MenuBar id="menubar" fx:id="MenuBar" styleClass="menubar" maxHeight="25.0" maxWidth="Infinity" prefHeight="25.0" prefWidth="640.0" stylesheets="@Bars.css" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
       <menus>
         <Menu mnemonicParsing="false" text="_Game">
           <items>
-              <MenuItem fx:id="newGame" mnemonicParsing="false" onAction="#startNewGame" text="New game " />
+              <MenuItem fx:id="NewGame" mnemonicParsing="false" onAction="#startNewGame" text="New game " />
               <SeparatorMenuItem mnemonicParsing="false" />
               <MenuItem fx:id="Undo" mnemonicParsing="false" onAction="#undo" text="Undo" />
               <MenuItem fx:id="Solve" mnemonicParsing="false" onAction="#lazySolve" text="Solve"/>
