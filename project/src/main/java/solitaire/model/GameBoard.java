@@ -1,15 +1,14 @@
 package solitaire.model;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
-import java.util.TreeMap;
 
 import solitaire.model.SolConst.SType;
 
 public class GameBoard {
 	//stacks is a map of the boards card stacks: four final stacks, seven play stacks, a deck and a throw stack
-	private Map <SolConst.SType, CardContainer> stacks = new TreeMap<>(); 
-	
+	private Map <SolConst.SType, CardContainer> stacks = new HashMap<>(); 
 	//Track last move
 	private CardContainer lastFromStack;
 	private CardContainer lastToStack;
@@ -50,13 +49,13 @@ public class GameBoard {
 	 */
 	public GameBoard(Map<SType, CardContainer> map) {
 		if (map.size() != 13)
-			throw new IllegalArgumentException("The stack map has too many stacks");
+			throw new IllegalArgumentException("The stack map has too many or too few stacks");
 		map.entrySet().stream().filter(e -> ! e.getKey().equals(SType.DECK)).forEach(e -> {
 			int cardCount = e.getValue().getCardCount();
 			if (cardCount > SolConst.CARDSINSUIT + ((CardStack) e.getValue()).getHiddenCards())
 				throw new IllegalArgumentException("The stack map contains stacks that are too big");
 		});
-		Stack<Card> allCardsOfGame = new Stack<Card>();
+		Stack<Card> allCardsOfGame = new Stack<>();
 		for (CardContainer stack: map.values()) {
 			for (Card card : stack) {
 				for (Card c2 : allCardsOfGame) {
@@ -74,6 +73,14 @@ public class GameBoard {
 				throw new IllegalArgumentException("The stack map contains stacks with too many hidden cards");
 		}
 		this.stacks = map;
+	}
+	/**
+	 * Returns a stack from its stackName
+	 * @param stackName
+	 * @return
+	 */
+	public CardContainer getStackbyName(SolConst.SType stackName) {
+		return stacks.get(stackName);
 	}
 
 	public CardStack getFinalStack(int i) {
@@ -160,10 +167,9 @@ public class GameBoard {
 	 * @param toStack The stack to test if card can be moved to
 	 */
 	private boolean legalMove(Card card, CardStack fromStack, CardStack toStack) {
-		if (!isCardFree(card, fromStack)) {
+		if (!isCardFree(card, fromStack))
 			return false;
-		}
-
+		
 		switch (toStack.getStackName()) {
 		case THROWSTACK, DECK -> {
 			throw new IllegalArgumentException("Cards cannot be moved back to the throwStack or deck");
@@ -183,13 +189,10 @@ public class GameBoard {
 			} else if (!toStack.isEmpty()) {
 				for (int i = 0; i < SolConst.SUITS; i++) {
 					CardContainer currentStack = stacks.get(SType.valueOf("F" + i));
-					if (toStack.equals(currentStack)) {
-						if (getFinalStack(i).peek().getSuit() == card.getSuit()) {
-							if (getFinalStack(i).peek().getFace() == card.getFace() - 1) {
+					if (toStack.equals(currentStack)) 
+						if (getFinalStack(i).peek().getSuit() == card.getSuit()) 
+							if (getFinalStack(i).peek().getFace() == card.getFace() - 1) 
 								return true;
-							}
-						}
-					}
 				}
 			}
 			return false;
@@ -200,19 +203,12 @@ public class GameBoard {
 			if (card.getFace() == 13 && toStack.size() == 0) {
 				return true;
 			} else if (card.getFace() == toStack.getCard(toStack.size() - 1).getFace() - 1 ) {
-				switch (toStack.getCard(toStack.size() - 1).getSuit()) {
-				case 'S','C' -> {
-					if ("DH".indexOf(card.getSuit()) != -1) {
+				if (toStack.peek().isRed()) {
+					if (!card.isRed())
 						return true;
-					}
-					break;
-				}
-				case 'D','H' -> {
-					if ("SC".indexOf(card.getSuit()) != -1) {
+				} else {
+					if (card.isRed())
 						return true;
-					}
-					break;
-				}
 				}
 			}
 			return false;
@@ -244,11 +240,11 @@ public class GameBoard {
 			if (lastToStack instanceof CardStack) 
 				((CardStack) lastToStack).play(lastFromStack, indexOfLastMove);
 			else {
-				if (getThrowStack().size() == 0 && getDeck().size() > 0) {
+				if (getThrowStack().size() == 0 && getDeck().size() > 0)
 					swapWhileRetainingOrder(getDeck(), getThrowStack());
-				} else
+				else
 					((CardDeck) lastToStack).deal((CardStack) lastFromStack, indexOfLastMove);
- 			}
+			}
 			indexOfLastMove = tempIndex;
 		} catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException("You can only undo the last move");
@@ -283,7 +279,7 @@ public class GameBoard {
 	/**
 	 * deal takes the top n (or the remaining cards if less than n) cards from the drawingStack and puts them on the
 	 * throwStack
-	 * @return the number of cards actually dealt
+	 * @return the number of cards actually dealt, -1 if the cards in the drawStack was moved back to the deck
 	 */
 	//TODO: return -1 if reset?
 	public int deal(int n) {
@@ -293,7 +289,7 @@ public class GameBoard {
 		if (getDeck().size() == 0) {
 			resetDrawStack();
 			saveMove(getThrowStack(), getDeck(), 0);
-			return returnVal;
+			return -1;
 		}
 		int index;
 		int size = getDeck().getCardCount();
@@ -410,15 +406,6 @@ public class GameBoard {
 		}
 		//The card passed could not be moved to any final stack, throw exception
 		throw new IllegalArgumentException("No finalstack of same suit found");
-	}
-
-	/**
-	 * Returns a stack from its stackName
-	 * @param stackName
-	 * @return
-	 */
-	public CardContainer getStackbyName(SolConst.SType stackName) {
-		return stacks.get(stackName);
 	}
 }
 

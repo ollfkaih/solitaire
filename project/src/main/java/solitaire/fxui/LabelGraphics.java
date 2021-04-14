@@ -8,7 +8,7 @@ import solitaire.model.SolConst;
 
 public final class LabelGraphics {
 	private static final String IMAGEEXTENSION = ".png";
-	private static final float CARDSCALER = (float) (1/2.9);
+	private static final float CARDSCALER = 1/2.9f;
 	public enum SPECIALIMAGE {BACK,EMPTY}; 
 
 	/**
@@ -82,9 +82,7 @@ public final class LabelGraphics {
 		boolean useInt = false;
 		char faceVal = 0;
 		switch (card.getFace()) {
-		case 2,3,4,5,6,7,8,9 -> {
-				useInt = true;
-			}
+		case 2,3,4,5,6,7,8,9 -> useInt = true;
 		case 1  -> faceVal = 'A';
 		case 10 -> faceVal = 'T';
 		case 11 -> faceVal = 'J';
@@ -92,13 +90,14 @@ public final class LabelGraphics {
 		case 13 -> faceVal = 'K';
 		default -> throw new IllegalArgumentException("Illegal card");
 		}
+		String filename;
+		if (useInt)
+			filename = "" + card.getFace() + "" + card.getSuit();
+		else
+			filename = "" + faceVal + "" + card.getSuit();
 		
 		try {
-			if (useInt) {
-				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + card.getFace() + card.getSuit() + IMAGEEXTENSION));
-			} else {
-				img = new Image(SolitaireController.class.getResourceAsStream(imgDir + faceVal + card.getSuit() + IMAGEEXTENSION));
-			}
+			img = new Image(SolitaireController.class.getResourceAsStream(imgDir + filename + IMAGEEXTENSION));
 			return img;
 		} catch (NullPointerException e) {
 			throw new IllegalArgumentException("Could not get card face");

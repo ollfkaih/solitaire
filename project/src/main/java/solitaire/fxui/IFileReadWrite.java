@@ -1,5 +1,6 @@
 package solitaire.fxui;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import solitaire.model.GameBoard;
@@ -8,8 +9,9 @@ public interface IFileReadWrite {
 	/**
 	 * Writes a game to file
 	 * @param board The GameBoard to write
+	 * @throws FileNotFoundException
 	 */
-	public void writeToFile(GameBoard board);
+	void writeToFile(String filename, GameBoard board) throws FileNotFoundException;
 	
 	/**
 	 * Loads a GameBoard from the default location.
@@ -17,6 +19,5 @@ public interface IFileReadWrite {
 	 * @return Instance of GameBoard
 	 * @throws IOException
 	 */
-	public GameBoard loadGame(String name) throws IOException;
-	
+	GameBoard loadGame(String filename) throws IOException;
 }

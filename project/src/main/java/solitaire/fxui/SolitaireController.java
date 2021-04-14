@@ -10,10 +10,10 @@ import solitaire.model.CardDeck;
 import solitaire.model.CardStack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -61,7 +61,7 @@ public class SolitaireController  {
 	
 	private GameBoard board;
 	
-	private Map<SolConst.SType, List<Label>> labels = new TreeMap<>();
+	private Map<SolConst.SType, List<Label>> labels = new HashMap<>();
 	private Label draggedLabel;
 	private Label dropLabel;
 	private CardStack dragParentCardStack;
@@ -106,7 +106,7 @@ public class SolitaireController  {
 				playStackTranslate(getPlayStackLabels(i),i);
 			for (int i = 0; i < SolConst.SUITS; i++)
 				finalStackTranslate(getFinalStackLabels(i), i);
-			deckAndThrowStackTranslate(0);
+			deckAndThrowStackTranslate(visibleCardsInThrowStack());
 		});		
 	}
 	
@@ -237,7 +237,7 @@ public class SolitaireController  {
 			statusBarController.log(ILogger.ERROR, StatusBarController.SAVEERROR, null);
 		else {
 			try {
-				ioHandler.writeToFile(this.board);
+				ioHandler.writeToFile(FILENAME, this.board);
 				statusBarController.log(ILogger.INFO, StatusBarController.SAVESUCCESS, null);
 			} catch (Exception e) {
 				statusBarController.log(ILogger.ERROR, StatusBarController.SAVEERROR, e);
@@ -462,8 +462,8 @@ public class SolitaireController  {
 		if (i < 0 || i >= SolConst.SUITS)
 			throw new IllegalArgumentException("The index of the final stack must be between 0 and " + (SolConst.SUITS - 1));
 		int width = windowWidth();
-		int xOffset =  3*width/7 + width/120;
-		float xFactor = (float) (width/7.35);
+		int xOffset =  (int) (3f*width/7f + width/120f);
+		float xFactor = width/7.35f;
 		
 		FinalStacks.setLayoutX(xOffset);
 		
@@ -477,8 +477,8 @@ public class SolitaireController  {
 	 */
 	private void deckAndThrowStackTranslate(int cardsDealt) {	
 		int width = windowWidth();
-		int xOffset = (int) (width/35);
-		float xFactor = (float) (width/7.35);
+		int xOffset = (int) (width/35f);
+		float xFactor = width/7.35f;
 		ThrowStack.setTranslateX(Math.round(xOffset + xFactor));
 		Deck.setTranslateX(xOffset);
 		
@@ -497,8 +497,8 @@ public class SolitaireController  {
 	 */	
 	private void playStackTranslate(List<Label> l, int i) {
 		int width = windowWidth();
-		int xOffset = (int) (width/35);
-		float xFactor = (float) (width/7.35);
+		int xOffset = (int) (width/35f);
+		float xFactor = (width/7.35f);
 		l.get(0).setTranslateX(Math.round(xOffset + xFactor*i));
 		int yOffset = 0;
 		
@@ -567,7 +567,7 @@ public class SolitaireController  {
 			}
 			img = new WritableImage(
 				(int) Math.round(l.getWidth() * scale),
-				(int) Math.round(l.getHeight() * scale) + 15*(getPlayStackLabels(indexOfStacks).size() - indexOfL - 1));
+				(int) Math.round(scale * (l.getHeight() + 15 * (getPlayStackLabels(indexOfStacks).size() - indexOfL - 1))));
 			stackOfCards.snapshot(snapshotParameters,img);
 		}
 	    db.setDragView(img, event.getX(), event.getY());

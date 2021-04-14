@@ -1,6 +1,6 @@
 package solitaire.logging;
 
 public interface ILogger {
-    public String ERROR = "error", WARNING = "warning", INFO = "info", FINE = "fine";
-    public void log(String severity, String message, Exception exception);
+    String ERROR = "error", WARNING = "warning", INFO = "info", FINE = "fine";
+    void log(String severity, String message, Exception exception);
 }

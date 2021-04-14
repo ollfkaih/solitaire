@@ -25,7 +25,7 @@ public class IOHandler implements IFileReadWrite {
 	/**
 	 * Returns the path to the save folder (%APPDATA%\Solitaire on Windows), user.home/Solitaire otherwise
 	 */
-	private static final Path getSaveFolderPath() {
+	public static final Path getSaveFolderPath() {
 		//I chose to save to appdata on windows because it is more frowned upon on windows to create subdirectories
 		//directly in user folder (and personal preference), and appdata was easy to get on all localised Windows system.
 		if (System.getProperty("os.name").toLowerCase().contains("win"))
@@ -37,14 +37,14 @@ public class IOHandler implements IFileReadWrite {
 	 * Returns the path to a file in our save directory
 	 * @param filename the name of the file (without file extension)
 	 */
-	private static final Path getSavePath(String filename) {
+	public static final Path getSavePath(String filename) {
 		return getSaveFolderPath().resolve(filename + "." + SAVEEXT);
 	}
 	
 	/**
 	 * Ensures that our save directory exists
 	 */
-	private void createSaveFolder() {
+	private static void createSaveFolder() {
 		if (Files.notExists(getSaveFolderPath())) {
             try {
                 Files.createDirectories(getSaveFolderPath());
@@ -55,23 +55,18 @@ public class IOHandler implements IFileReadWrite {
 	}
 	
 	@Override
-    public void writeToFile(GameBoard board) {
+    public void writeToFile(String filename, GameBoard board) throws FileNotFoundException {
         createSaveFolder();
-        try {
-            String filename = "Save";
-			PrintWriter writer = new PrintWriter(getSavePath(filename).toFile());
+        try (PrintWriter writer = new PrintWriter(getSavePath(filename).toFile())) {
             writer.write(board.toString());
             writer.flush();
-            
-            writer.close();
-        } catch (FileNotFoundException e) {
-			//TODO: LOG PROPERLY (Throw exception here, let the controller log it)
-            e.printStackTrace();
-        }    
+		} catch (FileNotFoundException e) {
+			throw new FileNotFoundException();
+        }  
     }
 	
-    public GameBoard loadGame(String name) throws IOException {
-        Scanner scanner = new Scanner(getSavePath(name));
+    public GameBoard loadGame(String filename) throws IOException {
+        Scanner scanner = new Scanner(getSavePath(filename));
         GameBoard board;
         
         Map <SolConst.SType, CardContainer> stacks = new TreeMap<>();

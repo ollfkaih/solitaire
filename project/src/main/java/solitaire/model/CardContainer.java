@@ -7,9 +7,6 @@ import java.util.function.Predicate;
 import solitaire.model.SolConst.SType;
 
 public abstract class CardContainer extends Stack<Card>{
-	/**
-	 *
-	 */
 	private static final long serialVersionUID = 1L;
 
 	/**
