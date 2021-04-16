@@ -66,7 +66,6 @@ public class SolitaireController  {
 	private Label dropLabel;
 	private CardStack dragParentCardStack;
 	private WinAnimation winAnimate;
-	private Stage stage;
 	private int visibleCardsInThrowStack;
 
 	private List<Label> getFinalStackLabels(int i) {
@@ -81,9 +80,6 @@ public class SolitaireController  {
 	private List<Label> getDeckLabel() {
 		return labels.get(SType.DECK);
 	}
-	public void setStage(Stage stage) {
-		this.stage = stage;
-	}	
 	/**
 	 * Wrapper function for LabelGraphics' setSpecialImage that also logs an error message if the image was not loaded correctly
 	 * @param label The label to set an imageview to
@@ -262,7 +258,7 @@ public class SolitaireController  {
 		Solve.setDisable(false);
 		if (winAnimate != null) {
 			winAnimate.stop();
-			stage.setResizable(true);
+			((Stage) Root.getScene().getWindow()).setResizable(true);
 		}
 		winAnimate = null;
 	}
@@ -421,16 +417,16 @@ public class SolitaireController  {
 		Undo.setDisable(true);
 		Solve.setDisable(true);
 		//winAnimation depends on the edges of the window to be static to look right
-		stage.setResizable(false);
+		((Stage) Root.getScene().getWindow()).setResizable(false);
 
 		labels.entrySet().removeIf(c -> c.getKey().toString().charAt(0) != 'F');
 		Double topDeltaY = AnchorPane.getTopAnchor(FinalStacks);
-		labels.forEach((k, list) -> {
+		labels.forEach((key, list) -> {
 			for (Label l: list) {
 				l.setOnMouseClicked(null);
 				l.setOnDragDetected(null);
 				//I move all the cards in all final stacks from FinalStacks Pane too our Root Pane, so that we can use the size of
-				//the parent for all the cards (now Root) to get the edges of our window (for collision detection)
+				//the parent for all the cards (now Root) to get the edges of our window (for collision detection in winAnimation)
 				if (list.get(0) != l) {
 					double posX = l.getParent().getLayoutX() + l.getTranslateX();
 					Root.getChildren().add(l);

@@ -14,9 +14,9 @@ import solitaire.model.SolConst;
 import solitaire.model.SolConst.SType;
 
 public class WinAnimation extends AnimationTimer{
-	private static final float takeSnapshotTrigger = 2.5f;
-	private static final int xSpeed = 3; //fixed horizontal speed
-	private static final double yAcceleration = 0.5; //acceleration vertically
+	private static final float TAKESNAPSHOTTRIGGER = 2.5f;
+	private static final int XVELOCITY = 3; //fixed horizontal speed
+	private static final double YACCELERATION = 0.5; //acceleration vertically
 	private static final int bottombarheight = 30; //TODO: Not hardcode
 	private static final int MAXIMAGESONSCREEN = 3000; //For performance reasons, limit the number of imageviews on screen at the same time
 	private AnchorPane Root;
@@ -46,11 +46,11 @@ public class WinAnimation extends AnimationTimer{
     WinAnimation (Map<SolConst.SType, List<Label>> finalLabels, AnchorPane Root, int childrenToKeep) {
         if (finalLabels.size() != SolConst.SUITS)
             throw new IllegalArgumentException("There should be four final stacks");
-            finalLabels.entrySet().stream().forEach(e -> {
-            if (e.getValue().size() != SolConst.CARDSINSUIT + 1) {
-                throw new IllegalArgumentException("Each final stack should have " + SolConst.CARDSINSUIT + " cards");
-            } 
-        });
+        finalLabels.entrySet().stream().forEach(e -> {
+        	if (e.getValue().size() != SolConst.CARDSINSUIT + 1) {
+           	    throw new IllegalArgumentException("Each final stack should have " + SolConst.CARDSINSUIT + " cards");
+           	}
+		});
         this.finalLabels = finalLabels;
 		this.Root = Root;
 		this.rootChildrentoKeep = childrenToKeep;
@@ -80,14 +80,14 @@ public class WinAnimation extends AnimationTimer{
      * @param l the label to move
      */
     public void moveLabelFunny(Label l) {
-    	double vx = randomX * xSpeed;
-		vy = vyprev + randomY*yAcceleration;
+    	double vx = randomX * XVELOCITY;
+		vy = vyprev + randomY*YACCELERATION;
     	l.setTranslateX(vx*thisLabelFrames);
 		l.setTranslateY(l.getTranslateY() + vy);
 		handleCollision(l);
 		//If the card just collided with the bottom of the window, we take a snapshot, to make it look better
 		//Or it will look like the card "tunneled" / skipped the bottom collision
-		if (Math.abs(prevTranslateY - l.getTranslateY()) > takeSnapshotTrigger || Math.abs(prevTranslateX - l.getTranslateX()) > takeSnapshotTrigger || justCollided) {
+		if (Math.abs(prevTranslateY - l.getTranslateY()) > TAKESNAPSHOTTRIGGER || Math.abs(prevTranslateX - l.getTranslateX()) > TAKESNAPSHOTTRIGGER || justCollided) {
 			takeSnapShotandFreezeinPlace(l);
 			prevTranslateY = l.getTranslateY();
 			prevTranslateX = l.getTranslateX();
