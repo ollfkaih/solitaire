@@ -2,14 +2,15 @@ package solitaire.fxui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,10 +26,13 @@ import solitaire.model.SolConst.SType;
 class IOHandlerTest {
     Map<SType, CardContainer> gameMap;
     IOHandler ioHandler = new IOHandler();
+    File directory = new File(IOHandler.getSaveFolderPath().toString());
+    File tempDir = new File(directory.getParentFile(), "temporaryDirectoryTest");
+
 
     @BeforeEach
     void setup() {
-        gameMap = new HashMap<>();
+        gameMap = new TreeMap<>();
         List<Card> deckCards = new ArrayList<>();
         CardStack finalStack = new CardStack(SType.F1);
         for (int i = 1; i <= 13; i++) {
@@ -47,9 +51,17 @@ class IOHandlerTest {
       @Test
       @DisplayName("Test that createSaveFolder creates a save folder")
       void testCreateSaveFolder() {
-          assertTrue(true);
-          //Rename directory and test that it is created
-          //Test that nothing happens if directory already exists
+    	  if (directory.exists()) {
+    		 directory.renameTo(tempDir);
+    		 directory.delete();
+    	  }
+    	  try {
+    		  ioHandler.writeToFile("testFile", new GameBoard(gameMap));
+    	  } catch (FileNotFoundException e) {
+    		  fail();
+    	  }    			 
+    	  assertTrue(directory.exists());
+    	  directory.delete();
       }
 
       @Test
@@ -66,16 +78,36 @@ class IOHandlerTest {
         try (Scanner scanner = new Scanner(file))  {
             while (scanner.hasNextLine())
             	string += scanner.nextLine() + "\n";
-            assertEquals(board.toString(), string, "The created file " );
+            assertEquals(board.toString(), string, "The created file should have same text as board.toString() method");
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        	fail("File was not created");
         }
       }
+      
+      @Test
+      @DisplayName("Test that writing to file works")
+      void testReadFromFile() {
+    	  testWriteToFile();
+    	  GameBoard loadTest = null;
+    	  try {
+    		 loadTest = ioHandler.loadGame("testFile");
+    	  } catch (Exception e) {
+    		  fail();
+    	  }
+    	  assertEquals(loadTest.toString(), (new GameBoard(gameMap)).toString(), "The loaded game should equal the saved one"); 
+      }
+      
 
       @AfterEach
       @DisplayName("Clean up created files")
       void cleanup() {
-        File file = new File(IOHandler.getSavePath("testFile").toString());
-        file.delete();
+    	  File file = new File(IOHandler.getSavePath("testFile").toString());
+    	  file.delete();
+
+    	  if (tempDir.exists() && directory.exists()) {
+    		  directory.delete();	
+    		  tempDir.renameTo(directory);
+    		  tempDir.deleteOnExit();
+    	  }    
       }
 }

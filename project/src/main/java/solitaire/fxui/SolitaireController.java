@@ -116,7 +116,7 @@ public class SolitaireController  {
 		board = new GameBoard(carddeck);
 		
 		//TODO: REMOVE TO NOT AUTOLOAD
-//		loadGame();
+		loadGame();
 		
 		statusBarController.log(ILogger.INFO, StatusBarController.NEWGAME, null);
 		resetBoardLabels();

@@ -1,14 +1,15 @@
 package solitaire.model;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+import java.util.TreeMap;
 
 import solitaire.model.SolConst.SType;
 
 public class GameBoard {
 	//stacks is a map of the boards card stacks: four final stacks, seven play stacks, a deck and a throw stack
-	private Map <SolConst.SType, CardContainer> stacks = new HashMap<>(); 
+	//TreeMap is useful because that means the map will be sorted according to the ordering of enum SType and save files will be orderered that same way
+	private Map <SolConst.SType, CardContainer> stacks = new TreeMap<>();
 	//Track last move
 	private CardContainer lastFromStack;
 	private CardContainer lastToStack;

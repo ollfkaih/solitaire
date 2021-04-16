@@ -8,7 +8,6 @@ import solitaire.model.SolConst;
 
 public final class LabelGraphics {
 	private static final String IMAGEEXTENSION = ".png";
-	private static final float CARDSCALER = 1/2.9f;
 	public enum SPECIALIMAGE {BACK,EMPTY}; 
 
 	/**
@@ -20,8 +19,8 @@ public final class LabelGraphics {
 		if (img == null)
 			throw new IllegalArgumentException("Card image must not be null");
 		ImageView view = new ImageView(img);
-		view.setFitHeight(img.getHeight()*CARDSCALER);
-		view.setFitWidth(img.getWidth()*CARDSCALER);
+		view.setFitHeight(img.getHeight()*SolConst.CARDSCALER);
+		view.setFitWidth(img.getWidth()*SolConst.CARDSCALER);
 		view.setSmooth(true);
 		label.setGraphic(view);
 	}

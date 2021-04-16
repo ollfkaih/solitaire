@@ -14,10 +14,11 @@ import solitaire.model.SolConst;
 import solitaire.model.SolConst.SType;
 
 public class WinAnimation extends AnimationTimer{
+	private static final int DEFAULTIMAGEHEIGHT = Math.round(SolConst.CARDSCALER * 315); //Fallback height
+	private static final int DEFAULTIMAGEWIDTH = Math.round(SolConst.CARDSCALER * 225); //Fallback width
 	private static final float TAKESNAPSHOTTRIGGER = 2.5f;
 	private static final int XVELOCITY = 3; //fixed horizontal speed
 	private static final double YACCELERATION = 0.5; //acceleration vertically
-	private static final int bottombarheight = 30; //TODO: Not hardcode
 	private static final int MAXIMAGESONSCREEN = 3000; //For performance reasons, limit the number of imageviews on screen at the same time
 	private AnchorPane Root;
 	private long previousTime; //previous time card was moved
@@ -25,6 +26,8 @@ public class WinAnimation extends AnimationTimer{
     private Map<SolConst.SType, List<Label>> finalLabels = new TreeMap<SolConst.SType, List<Label>>();
     private int cardValue = SolConst.CARDSINSUIT;
     private int stackIndex = 0; 
+    private int cardLabelHeight;
+    private int cardLabelWidth;
     private double randomX;
     private double randomY;
     private double prevTranslateX; //position in x-direction on previous frame when a snapshot was taken
@@ -51,9 +54,13 @@ public class WinAnimation extends AnimationTimer{
            	    throw new IllegalArgumentException("Each final stack should have " + SolConst.CARDSINSUIT + " cards");
            	}
 		});
+        if (finalLabels == null || Root == null)
+        	throw new IllegalArgumentException("All arguments to WinAnimation constructor must be non-null");
         this.finalLabels = finalLabels;
 		this.Root = Root;
 		this.rootChildrentoKeep = childrenToKeep;
+		cardLabelWidth = (int) finalLabels.get(SType.F0).get(0).getWidth();
+		cardLabelHeight = (int) finalLabels.get(SType.F0).get(0).getHeight();
     }
     
     /**
@@ -84,6 +91,7 @@ public class WinAnimation extends AnimationTimer{
 		vy = vyprev + randomY*YACCELERATION;
     	l.setTranslateX(vx*thisLabelFrames);
 		l.setTranslateY(l.getTranslateY() + vy);
+		vyprev = vy;
 		handleCollision(l);
 		//If the card just collided with the bottom of the window, we take a snapshot, to make it look better
 		//Or it will look like the card "tunneled" / skipped the bottom collision
@@ -94,7 +102,7 @@ public class WinAnimation extends AnimationTimer{
 			justCollided = false;
 		}
 		//when left edge off right side of stage etc, make cardlabel invisible
-    	if (l.getLayoutX() + l.getTranslateX() < -l.getWidth() || l.getLayoutX() + l.getTranslateX() > ((AnchorPane) l.getParent()).getWidth())
+    	if (l.getLayoutX() + l.getTranslateX() < - l.getWidth() || l.getLayoutX() + l.getTranslateX() > ((AnchorPane) l.getParent()).getWidth())
     		l.setVisible(false);
     }
 
@@ -105,15 +113,14 @@ public class WinAnimation extends AnimationTimer{
 	private void handleCollision(Label l) {
 		double labelBottom = l.getLayoutY() + l.getTranslateY() + l.getHeight();
 		double windowHeight = ((AnchorPane) l.getParent()).getHeight() - SolConst.BOTTOMDELTAY;
-		if (labelBottom > windowHeight /*|| l.getTranslateY() < -15*/) {
-			double r = randomDoublePositive()/4 + 0.75;
+		if (labelBottom > windowHeight) {
+			double r = randomDoublePositive()/4f + 0.75;
 			double dampenCollision = r * 0.8;
 			vyprev = - dampenCollision * vy;
 			//Move the cardlabel back up labelBottom - windowHeight units
 			l.setTranslateY(l.getTranslateY() - labelBottom + windowHeight);
 			justCollided = true;
-        } else 
-			vyprev = vy;
+        } 
 	}
 	
 	/**
@@ -125,7 +132,7 @@ public class WinAnimation extends AnimationTimer{
 		ImageView view = new ImageView(img);
 		view.relocate(l.getLayoutX() + l.getTranslateX(), l.getLayoutY() + l.getTranslateY());
 		Root.getChildren().add(view);
-		if (Root.getChildren().size() > MAXIMAGESONSCREEN && Root.getChildren().get(rootChildrentoKeep - 1).getClass() == ImageView.class) {
+		if (Root.getChildren().size() > MAXIMAGESONSCREEN && Root.getChildren().get(rootChildrentoKeep - 1) instanceof ImageView) {
 			Root.getChildren().remove(rootChildrentoKeep - 1); //removes the oldest snapshots we've added
 		}
 	}
@@ -139,7 +146,6 @@ public class WinAnimation extends AnimationTimer{
 		} else 
 			previousTime = now;
 		
-		//TODO: Verify that randomX is never 0
 		if (randomY == 0)
 			switchStack(now);
 		Label l = null;
@@ -177,19 +183,17 @@ public class WinAnimation extends AnimationTimer{
 		randomY = randomDoublePositive();
 		vy = randomY;
 		vyprev = 0;
-		if (stackIndex >= 0 && stackIndex < 4) {
+		if (stackIndex >= 0 && stackIndex < 4 && cardValue > 0) {
 			Label l = finalLabels.get(SType.valueOf("F" + stackIndex)).get(cardValue);
 			try {
-				img = new WritableImage((int) l.getWidth(), (int) l.getHeight());
+				img = new WritableImage(cardLabelWidth, cardLabelHeight);
 			} catch (IllegalArgumentException e) {
-				img = new WritableImage(80,105);
+				img = new WritableImage(DEFAULTIMAGEWIDTH,DEFAULTIMAGEHEIGHT);
 			}
 			l.snapshot(null, img);
 		}
 		if (cardValue > 0)
 			handle(now);
-        else
-            this.stop();
 	}
 
 	@Override
