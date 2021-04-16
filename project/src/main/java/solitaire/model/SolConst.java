@@ -10,4 +10,5 @@ public abstract class SolConst {
 	public static final String IMGDIR = "img/";
 	public static final int CARDSTODEAL = 3;
 	public static final int TOPDELTAY = 40;
+	public static final int BOTTOMDELTAY = 30;
 }

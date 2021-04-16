@@ -25,10 +25,10 @@ public class WinAnimation extends AnimationTimer{
     private Map<SolConst.SType, List<Label>> finalLabels = new TreeMap<SolConst.SType, List<Label>>();
     private int cardValue = SolConst.CARDSINSUIT;
     private int stackIndex = 0; 
-	private double prevTranslateX; //position in x-direction on previous frame when a snapshot was taken
-	private double prevTranslateY; //position in y-direction on previous frame when a snapshot was taken
     private double randomX;
     private double randomY;
+    private double prevTranslateX; //position in x-direction on previous frame when a snapshot was taken
+	private double prevTranslateY; //position in y-direction on previous frame when a snapshot was taken
     private double vy; //velocity in y-direction
     private double vyprev; //velocity in y-direction on previous frame
 	private boolean justCollided = false; //true on the frame just after a card collides with bottom
@@ -104,7 +104,7 @@ public class WinAnimation extends AnimationTimer{
 	 */
 	private void handleCollision(Label l) {
 		double labelBottom = l.getLayoutY() + l.getTranslateY() + l.getHeight();
-		double windowHeight = ((AnchorPane) l.getParent()).getHeight() - bottombarheight;
+		double windowHeight = ((AnchorPane) l.getParent()).getHeight() - SolConst.BOTTOMDELTAY;
 		if (labelBottom > windowHeight /*|| l.getTranslateY() < -15*/) {
 			double r = randomDoublePositive()/4 + 0.75;
 			double dampenCollision = r * 0.8;

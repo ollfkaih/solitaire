@@ -5,11 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,11 +62,11 @@ class IOHandlerTest {
             e.printStackTrace();
         }
         File file = new File(IOHandler.getSavePath("testFile").toString());
-        try {
-            //TODO: Use differnt toString for file
-            FileReader reader = new FileReader(file);
-            reader.toString();
-            assertEquals(board.toString(), reader.toString());*/
+        String string = "";	
+        try (Scanner scanner = new Scanner(file))  {
+            while (scanner.hasNextLine())
+            	string += scanner.nextLine() + "\n";
+            assertEquals(board.toString(), string, "The created file " );
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
