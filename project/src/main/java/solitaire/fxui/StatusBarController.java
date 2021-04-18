@@ -1,8 +1,14 @@
 package solitaire.fxui;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+
 import javafx.fxml.FXML;
 import javafx.scene.layout.HBox;
 import solitaire.logging.DistributingLogger;
+import solitaire.logging.ILogger;
 import solitaire.logging.LabelLogger;
 import solitaire.logging.StreamLogger;
 
@@ -20,18 +26,31 @@ public class StatusBarController {
 			LOADGRAPHICSERROR = "Some images were not loaded, game will not play correctly",
 			GAMEWON = "You won! Press F2 or 'Game' -> 'New game' to play again" ;
 	private DistributingLogger logger;
-	private StreamLogger warningLogger;
-	private LabelLogger labelLogger;
 
 	/**
 	 * Initializes 
 	 */
 	public void initialize() {
-		warningLogger = new StreamLogger(System.out);
-		labelLogger = new LabelLogger(BottomBar);
+		File logFile = new File(IOHandler.getSaveFolderPath().toString(), "SolitaireLog.txt");
+		ILogger warningLogger = createLogFile(logFile);
+		ILogger labelLogger = new LabelLogger(BottomBar);
 		
 		logger = new DistributingLogger(labelLogger, warningLogger, labelLogger, warningLogger);
-		//logger.log(ILogger.INFO, "New game started", null);
+	}
+
+	private ILogger createLogFile(File logFile) {
+		OutputStream outputStream;
+		ILogger logFileLogger = null;
+		if (logFile.exists())
+			logFile.delete();
+		try {
+			if (logFile.createNewFile()) {
+				outputStream = new FileOutputStream(logFile, true);	
+				logFileLogger = new StreamLogger(outputStream);	
+			}
+		} catch (Exception e) {
+		}
+		return logFileLogger;
 	}
 	
 	public void log(String severity, String message, Exception exception) {

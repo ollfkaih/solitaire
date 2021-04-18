@@ -43,7 +43,7 @@ import javafx.stage.StageStyle;
 
 public class SolitaireController  {
 	
-	private final IOHandler ioHandler = new IOHandler();
+	private final IFileReadWrite fileReadWrite = new IOHandler();
 	private static final String FILENAME = "Save";
 	
 	@FXML private AnchorPane Root;
@@ -116,7 +116,7 @@ public class SolitaireController  {
 		board = new GameBoard(carddeck);
 		
 		//TODO: REMOVE TO NOT AUTOLOAD
-		loadGame();
+		// loadGame();
 		
 		statusBarController.log(ILogger.INFO, StatusBarController.NEWGAME, null);
 		resetBoardLabels();
@@ -159,8 +159,7 @@ public class SolitaireController  {
 		canUndo();
 		if (winAnimate != null) return;
 		statusBarController.log(ILogger.FINE, cardsDealt + " cards dealt", null);
-		updateDeck();
-		updateThrowStack();
+		updateBoard();
 		deckAndThrowStackTranslate(cardsDealt);
 	}
 	
@@ -170,8 +169,6 @@ public class SolitaireController  {
 		updateBoard();
 		Undo.setText("Redo");
 		Undo.setOnAction(e -> redo());
-		/*if (board.getLastFromStack().getStackName().equals(SType.THROWSTACK) && visibleCards < 3)
-			visibleCards++;*/
 		deckAndThrowStackTranslate(prevVisibleCards);
 		Undo.setAccelerator(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN));
 	}
@@ -181,8 +178,6 @@ public class SolitaireController  {
 		try {board.redo();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null); return;}
 		updateBoard();
 		canUndo();
-		/*if (board.getLastFromStack().getStackName().equals(SType.THROWSTACK) && visibleCards > 1)
-			visibleCards--;*/
 		deckAndThrowStackTranslate(prevVisibleCards);
 	}
 	
@@ -230,7 +225,7 @@ public class SolitaireController  {
 			statusBarController.log(ILogger.ERROR, StatusBarController.SAVEERROR, null);
 		else {
 			try {
-				ioHandler.writeToFile(FILENAME, this.board);
+				fileReadWrite.writeToFile(FILENAME, board.toString());
 				statusBarController.log(ILogger.INFO, StatusBarController.SAVESUCCESS, null);
 			} catch (Exception e) {
 				statusBarController.log(ILogger.ERROR, StatusBarController.SAVEERROR, e);
@@ -240,7 +235,7 @@ public class SolitaireController  {
 	
 	public void loadGame() {
 		try {
-			this.board = ioHandler.loadGame(FILENAME);
+			this.board = fileReadWrite.loadGame(FILENAME);
 			statusBarController.log(ILogger.INFO, StatusBarController.LOADSUCCESS, null);
 		} catch (IllegalArgumentException e) {
 			statusBarController.log(ILogger.ERROR, StatusBarController.SAVEFILECORRUPT, e);
@@ -594,7 +589,7 @@ public class SolitaireController  {
 	 */
 	private void revealCard(CardStack stack) {
 		statusBarController.clearStatusBar();
-		board.revealCard(stack);
+		board.revealTopCard(stack);
 		Undo.setDisable(true);
 		updateBoard();
 	}

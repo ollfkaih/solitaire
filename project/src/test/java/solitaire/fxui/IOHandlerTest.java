@@ -56,7 +56,7 @@ class IOHandlerTest {
     		 directory.delete();
     	  }
     	  try {
-    		  ioHandler.writeToFile("testFile", new GameBoard(gameMap));
+    		  ioHandler.writeToFile("testFile", new GameBoard(gameMap).toString());
     	  } catch (FileNotFoundException e) {
     		  fail();
     	  }    			 
@@ -69,7 +69,7 @@ class IOHandlerTest {
       void testWriteToFile() {
         GameBoard board = new GameBoard(gameMap);
         try {
-            ioHandler.writeToFile("testFile", board);
+            ioHandler.writeToFile("testFile", board.toString());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

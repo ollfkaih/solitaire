@@ -14,7 +14,6 @@ public class LabelLogger implements ILogger {
 		this.statusBar = statusBar;
 	}
 	
-	//TODO: write log with arg (LogConstant Event?) (maybe also logwithbutton?)	
 	@Override
 	public void log(String severity, String message, Exception exception) {
 		Label label = null;
@@ -36,14 +35,5 @@ public class LabelLogger implements ILogger {
 		default -> textColor = Color.BLUEVIOLET;
 		}
 		label.setTextFill(textColor);
-		/*if (severity == ERROR) 
-			label.setTranslateX(200);*/
-		//Button button = new Button("Click me");
-
-		//Add label if not exist
-		//statusBar.getChildren().add(button);
-		
-		//TODO: Start timer, make a TimerTask with a runnable to log "null/nothing" to the label again (or better, maybe clear the text of the label) ? 
-		//timer.schedule
 	}
 }

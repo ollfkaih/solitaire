@@ -55,10 +55,10 @@ public class IOHandler implements IFileReadWrite {
 	}
 	
 	@Override
-    public void writeToFile(String filename, GameBoard board) throws FileNotFoundException {
+    public void writeToFile(String filename, String textToWrite) throws FileNotFoundException {
         createSaveFolder();
         try (PrintWriter writer = new PrintWriter(getSavePath(filename).toFile())) {
-            writer.write(board.toString());
+            writer.write(textToWrite);
             writer.flush();
 		} catch (FileNotFoundException e) {
 			throw new FileNotFoundException();

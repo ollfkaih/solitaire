@@ -241,14 +241,14 @@ public class GameBoard {
 			if (lastToStack instanceof CardStack) 
 				((CardStack) lastToStack).play(lastFromStack, indexOfLastMove);
 			else {
-				if (getThrowStack().size() == 0 && getDeck().size() > 0)
+				if (getThrowStack().size() == 0 && ! getDeck().isEmpty())
 					swapWhileRetainingOrder(getDeck(), getThrowStack());
 				else
 					((CardDeck) lastToStack).deal((CardStack) lastFromStack, indexOfLastMove);
 			}
 			indexOfLastMove = tempIndex;
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException("You can only undo the last move");
+		} catch (Exception e) {
+			throw new IllegalStateException("You can only undo the last move");
 		}
 	}
 	
@@ -282,7 +282,6 @@ public class GameBoard {
 	 * throwStack
 	 * @return the number of cards actually dealt, -1 if the cards in the drawStack was moved back to the deck
 	 */
-	//TODO: return -1 if reset?
 	public int deal(int n) {
 		int returnVal = 0;
 		if (n <= 0)
@@ -292,16 +291,12 @@ public class GameBoard {
 			saveMove(getThrowStack(), getDeck(), 0);
 			return -1;
 		}
-		int index;
+		int index = getThrowStack().getCardCount();
 		int size = getDeck().getCardCount();
-		if (size <= n) {
-			index = 0;
+		if (size <= n) 
 			returnVal = size;
-		}
-		else {
-			index = getThrowStack().getCardCount();
+		else 
 			returnVal = n;
-		}
 		getDeck().deal(getThrowStack(), n);
 		saveMove(getDeck(), getThrowStack(), index);
 		return returnVal;
@@ -340,8 +335,8 @@ public class GameBoard {
 	 * Tries to decrement the hiddencards counter of a stack by one
 	 * @param cardStack the cardStack to reveal the top card of
 	 */
-	public void revealCard(CardStack cardStack) {
-		if (stacks.entrySet().stream().filter(stack -> stack.getValue().equals(cardStack) && stack.getKey().toString().charAt(0) == 'P') != null) {
+	public void revealTopCard(CardStack cardStack) {
+		if (cardStack.getStackName().toString().charAt(0) == 'P' && ! cardStack.isEmpty()) {
 			cardStack.decrementHiddenCards();
 			//reveal cannot be undone, setting lastFromStack to null means undo and redo will throw illegal State Exception
 			lastFromStack = null;
