@@ -5,7 +5,7 @@ import java.io.PrintStream;
 
 public class StreamLogger implements ILogger{
 	private PrintStream stream;
-	private final static String DEFAULTFORMATSTRING = "Severity: %s, message: %s";
+	private static final String DEFAULTFORMATSTRING = "Severity: %s, message: %s";
 	private String formatString = DEFAULTFORMATSTRING;
 
 	public StreamLogger(OutputStream stream) {

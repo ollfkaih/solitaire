@@ -150,11 +150,11 @@ public class CardContainerTest {
 	@Test
 	@DisplayName("Test illegal play moved from a CardStack")
 	public void testIllegalPlayCards() {
-		assertThrows(IllegalArgumentException.class, () -> cardStack.play(stackWithHiddenCards, -1));
-		assertThrows(IllegalArgumentException.class, () -> cardStack.play(stackWithHiddenCards, 10));
-		assertThrows(IllegalArgumentException.class, () -> cardStack.play(cardStack, 0));
+		assertThrows(IndexOutOfBoundsException.class, () -> cardStack.play(stackWithHiddenCards, -1));
+		assertThrows(IndexOutOfBoundsException.class, () -> cardStack.play(stackWithHiddenCards, 10));
+		assertThrows(IllegalArgumentException.class, () -> cardStack.play(cardStack, 0), "Cannot play cards to itself");
 		cardStack.play(stackWithHiddenCards, 0);
-		assertThrows(IllegalArgumentException.class, () -> cardStack.play(stackWithHiddenCards, 0));
+		assertThrows(IndexOutOfBoundsException.class, () -> cardStack.play(stackWithHiddenCards, 0));
 	}
 	@Test
 	@DisplayName("Test toString() for both CardContainers")

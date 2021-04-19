@@ -108,7 +108,7 @@ public class GameBoard {
 		return lastToStack;
 	}
 
-	public boolean drawStackEmpty() {
+	public boolean isdeckEmpty() {
 		return getDeck().isEmpty();
 	}
 
@@ -241,14 +241,14 @@ public class GameBoard {
 			if (lastToStack instanceof CardStack) 
 				((CardStack) lastToStack).play(lastFromStack, indexOfLastMove);
 			else {
-				if (getThrowStack().size() == 0 && getDeck().size() > 0)
+				if (getThrowStack().size() == 0 && ! getDeck().isEmpty())
 					swapWhileRetainingOrder(getDeck(), getThrowStack());
 				else
 					((CardDeck) lastToStack).deal((CardStack) lastFromStack, indexOfLastMove);
 			}
 			indexOfLastMove = tempIndex;
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException("You can only undo the last move");
+		} catch (Exception e) {
+			throw new IllegalStateException("You can only undo the last move");
 		}
 	}
 	
@@ -271,7 +271,7 @@ public class GameBoard {
 	public void moveCard(int indexOfCard, CardStack fromStack, CardStack toStack) {
 		Card card = fromStack.getCard(indexOfCard);
 		if (!legalMove(card, fromStack, toStack)) {
-			throw new IllegalArgumentException(String.format("Card: %s in stack %s cannot legally be moved to %s. Input index: %s", card, fromStack, toStack, indexOfCard));
+			throw new IllegalArgumentException(String.format("Card: %s cannot legally be moved to requested stack. Input index: %s", card, indexOfCard));
 		}
 		fromStack.play(toStack, indexOfCard);
 		saveMove(fromStack, toStack, toStack.indexOf(card));
@@ -282,7 +282,6 @@ public class GameBoard {
 	 * throwStack
 	 * @return the number of cards actually dealt, -1 if the cards in the drawStack was moved back to the deck
 	 */
-	//TODO: return -1 if reset?
 	public int deal(int n) {
 		int returnVal = 0;
 		if (n <= 0)
@@ -292,16 +291,12 @@ public class GameBoard {
 			saveMove(getThrowStack(), getDeck(), 0);
 			return -1;
 		}
-		int index;
+		int index = getThrowStack().getCardCount();
 		int size = getDeck().getCardCount();
-		if (size <= n) {
-			index = 0;
+		if (size <= n) 
 			returnVal = size;
-		}
-		else {
-			index = getThrowStack().getCardCount();
+		else 
 			returnVal = n;
-		}
 		getDeck().deal(getThrowStack(), n);
 		saveMove(getDeck(), getThrowStack(), index);
 		return returnVal;
@@ -340,8 +335,8 @@ public class GameBoard {
 	 * Tries to decrement the hiddencards counter of a stack by one
 	 * @param cardStack the cardStack to reveal the top card of
 	 */
-	public void revealCard(CardStack cardStack) {
-		if (stacks.entrySet().stream().filter(stack -> stack.getValue().equals(cardStack) && stack.getKey().toString().charAt(0) == 'P') != null) {
+	public void revealTopCard(CardStack cardStack) {
+		if (cardStack.getStackName().toString().charAt(0) == 'P' && ! cardStack.isEmpty()) {
 			cardStack.decrementHiddenCards();
 			//reveal cannot be undone, setting lastFromStack to null means undo and redo will throw illegal State Exception
 			lastFromStack = null;
@@ -380,34 +375,55 @@ public class GameBoard {
 	
 	/**
 	 * Loops through all four final stacks to check if a given card can be put there
-	 * throws exception if card cannot be moved to any final stack
-	 * @param card the Card to be moved
 	 * @param fromStack the stack the card is currently in
+	 * @return True if card was moved to a finalStack, false otherwise;
 	 */
-	public void moveToFinalStacks(Card card, CardStack fromStack) {
-		if (!fromStack.contains(card)) throw new IllegalArgumentException("Card is not in given stack");
+	public boolean moveToFinalStacks(CardStack fromStack) {
+		if (fromStack.isEmpty())
+			return false;
+		int cardCount = fromStack.getCardCount();
+		Card card;
+		try {
+			card = fromStack.peek();
+		} catch (Exception e) {
+			return false;
+		}
 		for (int i = 0; i < SolConst.SUITS; i++) {
 			if (getFinalStack(i).isEmpty()) {
 				if (card.getFace() == 1) {
 					moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
-					return;
+					return cardCount != fromStack.getCardCount();
 				}
 			} else {
 				Card thisStackTopCard = this.getFinalStack(i).peek();
 				if (thisStackTopCard.getSuit() == card.getSuit()) {
 					try {
 						moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
-						return;
+						return cardCount != fromStack.getCardCount();
 					} catch (IllegalArgumentException e) {
 						//Card may not have been one face value higher, do nothing
-						throw new IllegalArgumentException("Face value too high: Highest value of stack with suit " + card.getSuit() + " is " + thisStackTopCard.getFace() + ", your card was" + card);
+						return cardCount != fromStack.getCardCount();
 					}
 				}
 			}
 		}
 		//The card passed could not be moved to any final stack, throw exception
-		throw new IllegalArgumentException("No finalstack of same suit found");
+		return cardCount != fromStack.getCardCount();
+	}
+
+	public boolean iterateStacksAndMoveToFinalStacks() {
+		boolean somethingChanged = false;
+		somethingChanged = moveToFinalStacks(getThrowStack());
+		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
+			if (moveToFinalStacks(getPlayStack(i)))
+				somethingChanged = true;
+		}
+		if (somethingChanged)
+			lastFromStack = null; //Prevent undo (because only one move is allowed to be undone)
+		return somethingChanged;
 	}
 }
 
 
+
+	

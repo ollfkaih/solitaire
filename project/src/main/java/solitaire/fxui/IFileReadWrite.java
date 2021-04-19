@@ -12,7 +12,7 @@ public interface IFileReadWrite {
 	 * @param board The GameBoard to write
 	 * @throws FileNotFoundException
 	 */
-	void writeToFile(String filename, GameBoard board) throws FileNotFoundException;
+	void writeToFile(String filename, String textToWrite)throws FileNotFoundException;
 	
 	/**
 	 * Loads a GameBoard from the default location.

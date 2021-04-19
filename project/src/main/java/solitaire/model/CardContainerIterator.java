@@ -5,15 +5,15 @@ import java.util.NoSuchElementException;
 
 public class CardContainerIterator implements Iterator<Card> {
 	private int currentIndex = 0;
-	CardContainer handOfCards;
+	CardContainer cardContainer;
 	
-	public CardContainerIterator(CardContainer handOfCards) {
-		this.handOfCards = handOfCards;
+	public CardContainerIterator(CardContainer cardContainer) {
+		this.cardContainer = cardContainer;
 	}
 
 	@Override
 	public boolean hasNext() {
-		return currentIndex < handOfCards.getCardCount();
+		return currentIndex < cardContainer.getCardCount();
 	}
 
 	@Override
@@ -23,7 +23,7 @@ public class CardContainerIterator implements Iterator<Card> {
 		Card returnCard;
         
 		try {
-		returnCard = handOfCards.get(currentIndex);
+		returnCard = cardContainer.get(currentIndex);
 		} catch (Exception e) {
 			throw new NoSuchElementException(); 
 		}
