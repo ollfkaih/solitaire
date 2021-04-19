@@ -260,7 +260,7 @@ public class SolitaireController  {
 	 * Updates the throw- and drawstack (e.g. after dealing a card)
 	 */
 	private void updateDeck() {
-		if (board.drawStackEmpty()) {
+		if (board.isdeckEmpty()) {
 			setSpecialImageforLabel(getDeckLabel().get(0),SPECIALIMAGE.EMPTY);
 		} else {
 			setSpecialImageforLabel(getDeckLabel().get(0),SPECIALIMAGE.BACK);
@@ -367,41 +367,17 @@ public class SolitaireController  {
 	}
 	
 	/**
-	 * An algorithm to iterate through the throwstack and playstacks to move any available cards to finalstacks
-	 * and continues to do so until no moves are made after iterating through those stacks
+	 * A recursive algorithm to iterate through the throwstack and playstacks to move any available cards to finalstacks
+	 * and do so again until no moves are made after iterating through those stacks
 	 */
 	@FXML private void lazySolve() {
-		boolean somethingChanged = false;
-		CardStack stack = board.getThrowStack();
-		somethingChanged = tryMoveTopCardToFinalStack(stack);
-		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
-			stack = board.getPlayStack(i);
-			if (tryMoveTopCardToFinalStack(stack))
-				somethingChanged = true;
-		}
-		if (somethingChanged) {
+		statusBarController.log(ILogger.INFO, StatusBarController.LAZYSOLVEERROR, null); //Recursion: we log an error to statusBar first and clear it if a move is made
+		if (board.iterateStacksAndMoveToFinalStacks()) {
 			updateBoard();
 			Undo.setDisable(true);
 			lazySolve();
+			statusBarController.clearStatusBar(); //clear status bar because there was actually no error
 		}
-	}
-	
-	/**
-	 * Tries to move the top card of a stack to finalstacks
-	 * @param stack the stack the card is in
-	 * @return true if card was successfully moved, false otherwise
-	 */
-	private boolean tryMoveTopCardToFinalStack(CardStack stack) {
-		int count = stack.getCardCount();
-		try {
-			board.moveToFinalStacks(stack.peek(), stack);
-		} catch (Exception e) {
-			;	//We ignore exceptions because this indicates that the top card cannot be legally moved to a final stack (IllegalArgument), 
-				//or the stack is empty (IndexOutOfBounds) (the user shouldn't be overloaded with messages, and only needs to see that the card isn't moved anywhere)
-		}
-		if (count != stack.getCardCount())
-			return true;
-		return false;
 	}
 	
 	/**
@@ -413,14 +389,14 @@ public class SolitaireController  {
 		//winAnimation depends on the edges of the window to be static to look right
 		((Stage) Root.getScene().getWindow()).setResizable(false);
 
-		labels.entrySet().removeIf(c -> c.getKey().toString().charAt(0) != 'F');
+		labels.entrySet().removeIf(labelList -> labelList.getKey().toString().charAt(0) != 'F');
 		Double topDeltaY = AnchorPane.getTopAnchor(FinalStacks);
 		labels.forEach((key, list) -> {
 			for (Label l: list) {
 				l.setOnMouseClicked(null);
 				l.setOnDragDetected(null);
-				//I move all the cards in all final stacks from FinalStacks Pane too our Root Pane, so that we can use the size of
-				//the parent for all the cards (now Root) to get the edges of our window (for collision detection in winAnimation)
+				//I move all the cards in all final stacks from FinalStacks Pane too its parent, the Root Pane, so that we can use the size of
+				//the parent of the cards (now Root) to get the edges of our window (for collision detection in winAnimation)
 				if (list.get(0) != l) {
 					double posX = l.getParent().getLayoutX() + l.getTranslateX();
 					Root.getChildren().add(l);
@@ -644,10 +620,9 @@ public class SolitaireController  {
 		if (event.getButton().equals(MouseButton.PRIMARY)){
             if (event.getClickCount() == 2) {
             	Card card = stack.peek();            	
-            	if (tryMoveTopCardToFinalStack(stack)) {
+            	if (board.moveToFinalStacks(stack)) {
             		statusBarController.log(ILogger.FINE, "Card moved to a final stack: " + card, null);
             		canUndo();
-            		statusBarController.clearStatusBar();
             		updateBoard();
             	} else {
             		statusBarController.log(ILogger.WARNING, "No final stack to legally move " + card + " to.", null);
