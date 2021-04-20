@@ -19,8 +19,8 @@ public final class LabelGraphics {
 		if (img == null)
 			throw new IllegalArgumentException("Card image must not be null");
 		ImageView view = new ImageView(img);
-		view.setFitHeight(img.getHeight()*SolConst.CARDSCALER);
-		view.setFitWidth(img.getWidth()*SolConst.CARDSCALER);
+		view.setFitHeight(img.getHeight() * SolConst.CARDSCALER);
+		view.setFitWidth(img.getWidth() * SolConst.CARDSCALER);
 		view.setSmooth(true);
 		label.setGraphic(view);
 	}

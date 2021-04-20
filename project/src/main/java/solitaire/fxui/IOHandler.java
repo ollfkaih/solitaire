@@ -101,7 +101,7 @@ public class IOHandler implements IFileReadWrite {
         try {
         	board = new GameBoard(stacks);
         } catch (IllegalArgumentException e) {
-        	throw new IllegalArgumentException("Could not load file");
+        	throw new IllegalArgumentException("Could not create game from given file");
         }
         return board;
     }

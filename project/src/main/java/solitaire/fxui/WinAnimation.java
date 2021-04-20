@@ -19,7 +19,7 @@ public class WinAnimation extends AnimationTimer{
 	private static final float TAKESNAPSHOTTRIGGER = 2.5f;
 	private static final int XVELOCITY = 3; //fixed horizontal speed
 	private static final double YACCELERATION = 0.5; //acceleration vertically
-	private static final int MAXIMAGESONSCREEN = 3000; //For performance reasons, limit the number of imageviews on screen at the same time
+	private static final int MAXIMAGESONSCREEN = 5000; //For performance reasons, limit the number of imageviews on screen at the same time
 	private AnchorPane Root;
 	private long previousTime; //previous time card was moved
 	private int thisLabelFrames; //number of frames we've been on a particular card

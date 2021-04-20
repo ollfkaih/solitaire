@@ -16,7 +16,7 @@ public interface IFileReadWrite {
 	
 	/**
 	 * Loads a GameBoard from the default location.
-	 * @param name Name of the file
+	 * @param filename Name of the file
 	 * @return Instance of GameBoard
 	 * @throws IOException
 	 */

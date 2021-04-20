@@ -136,12 +136,9 @@ public class SolitaireController  {
 		canUndo();
 		Undo.setDisable(true);
 		
-		for (int i = 0; i < SolConst.SUITS; i++) 
-			labels.put(SType.valueOf("F" + i), new ArrayList<Label>());
-		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) 
-			labels.put(SType.valueOf("P" + i), new ArrayList<Label>());
-		labels.put(SType.THROWSTACK, new ArrayList<Label>()); 
-		labels.put(SType.DECK, new ArrayList<Label>());
+		for (SType sType: SType.values()) {
+			labels.put(sType, new ArrayList<Label>());
+		}
 
 		getDeckLabel().add(0, new Label(null));
 		Deck.getChildren().add(0, getDeckLabel().get(0));
