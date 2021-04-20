@@ -6,7 +6,7 @@ import javafx.scene.image.ImageView;
 import solitaire.model.Card;
 import solitaire.model.SolConst;
 
-public final class LabelGraphics {
+public final class LabelImageSetter {
 	private static final String IMAGEEXTENSION = ".png";
 	public enum SPECIALIMAGE {BACK,EMPTY}; 
 
@@ -54,14 +54,14 @@ public final class LabelGraphics {
 	/**
 	 * Sets the image of a label to the appropriate card image
 	 * Returns true if the image was successfully set.
-	 * @param stack
-	 * @param card
-	 * @return 
+	 * @param label The label to put an image on 
+	 * @param card The card to put an image of on the label
+	 * @return True if image was succesfully set, false on error
 	 */
 	public static boolean setCardImage(Label label, Card card) {
 		Image img;
 		try {
-			img = LabelGraphics.getImage(card);
+			img = getImage(card);
 			setLabelGraphicToView(label, img);
 		} catch (Exception e) {
 			return false;
@@ -72,9 +72,9 @@ public final class LabelGraphics {
 	/**
 	 * Returns the appropriate image file to represent a card.
 	 * @param card The card to represent
-	 * @return
+	 * @return Image that represents given card
 	 */
-	public static Image getImage(Card card) {
+	private static Image getImage(Card card) {
 		String imgDir = SolConst.IMGDIR;
 		Image img;
 		

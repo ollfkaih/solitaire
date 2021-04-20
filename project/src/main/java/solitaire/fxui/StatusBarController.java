@@ -22,7 +22,7 @@ public class StatusBarController implements ILogger {
 			SAVESUCCESS = "Game saved", LOADSUCCESS = "Game loaded", 
 			SAVEFILECORRUPT = LOADERROR + " because the save file is corrupt",
 			LOADGRAPHICSERROR = "Some images were not loaded, game will not play correctly",
-			LAZYSOLVEERROR = "No cards can be legally moved to finalstacks",
+			LAZYSOLVEERROR = "No cards can be legally moved to the final stacks",
 			GAMEWON = "You won! Press F2 or 'Game' -> 'New game' to play again" ;
 	private DistributingLogger logger;
 

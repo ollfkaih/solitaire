@@ -28,9 +28,17 @@ public class IOHandler implements IFileReadWrite {
 	public static final Path getSaveFolderPath() {
 		//I chose to save to appdata on windows because it is more frowned upon on windows to create subdirectories
 		//directly in user folder (and personal preference), and appdata was easy to get on all localised Windows system.
-		if (System.getProperty("os.name").toLowerCase().contains("win"))
-			return Path.of(System.getenv("APPDATA"), "Solitaire");
-		return Path.of(System.getProperty("user.home"), "Solitaire");
+		//The try/catch is because I have not tested if (Path of appdata) will be null or throw exception on linux etc. 
+		Path savePath;
+		try {
+			if (System.getProperty("os.name").toLowerCase().contains("win"))
+				savePath = Path.of(System.getenv("APPDATA"), "Solitaire");
+			else
+				savePath = Path.of(System.getProperty("user.home"), "Solitaire");
+		} catch (Exception e) {
+			savePath = Path.of(System.getProperty("user.home"), "Solitaire");
+		}
+		return savePath;
 	}
 	
 	/**

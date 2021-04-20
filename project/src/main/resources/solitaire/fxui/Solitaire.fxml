@@ -22,17 +22,17 @@
               <MenuItem fx:id="Undo" mnemonicParsing="false" onAction="#undo" text="Undo" />
               <MenuItem fx:id="Solve" mnemonicParsing="false" onAction="#lazySolve" text="Solve"/>
               <SeparatorMenuItem mnemonicParsing="false" />
-              <MenuItem fx:id="Save" mnemonicParsing="false" onAction="#promptSave" text="Save game" />
-              <MenuItem fx:id="Load" mnemonicParsing="false" onAction="#loadGame" text="Load game" />
+              <MenuItem mnemonicParsing="false" onAction="#promptSave" text="Save game" />
+              <MenuItem mnemonicParsing="false" onAction="#loadGame" text="Load game" />
               <SeparatorMenuItem mnemonicParsing="false" />
-              <MenuItem fx:id="Exit" mnemonicParsing="false" onAction="#exit" text="Exit" />
+              <MenuItem mnemonicParsing="false" onAction="#exit" text="Exit" />
           </items>
        </Menu>
- <!-- 		 <Menu fx:id="About" mnemonicParsing="false" text="_About">
+ 		 <Menu mnemonicParsing="false" onAction="#showAboutDialog" text="_About">
             <items>
               <MenuItem mnemonicParsing="false" text="About" />
             </items>
-         </Menu> -->
+         </Menu> 
       </menus>
     </MenuBar>
    </children>

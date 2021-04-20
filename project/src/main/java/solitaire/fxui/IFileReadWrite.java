@@ -7,12 +7,12 @@ import solitaire.model.GameBoard;
 
 public interface IFileReadWrite {
 	/**
-	 * Writes a game to file
+	 * Writes a text string to file 
 	 * @param filename The name of the file to save to
-	 * @param board The GameBoard to write
+	 * @param textToWrite The string to write to file 
 	 * @throws FileNotFoundException
 	 */
-	void writeToFile(String filename, String textToWrite)throws FileNotFoundException;
+	void writeToFile(String filename, String textToWrite) throws FileNotFoundException;
 	
 	/**
 	 * Loads a GameBoard from the default location.

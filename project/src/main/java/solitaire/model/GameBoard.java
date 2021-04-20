@@ -191,8 +191,7 @@ public class GameBoard {
 				for (int i = 0; i < SolConst.SUITS; i++) {
 					CardContainer currentStack = stacks.get(SType.valueOf("F" + i));
 					if (toStack.equals(currentStack)) 
-						if (getFinalStack(i).peek().getSuit() == card.getSuit()) 
-							if (getFinalStack(i).peek().getFace() == card.getFace() - 1) 
+						if (getFinalStack(i).peek().getSuit() == card.getSuit() && getFinalStack(i).peek().getFace() == card.getFace() - 1) 
 								return true;
 				}
 			}
@@ -317,8 +316,8 @@ public class GameBoard {
 	
 	/**
 	 * This puts all of the cards in one stack in another, initially empty stack 
-	 * @param from
-	 * @param to
+	 * @param from CardContainer with some cards
+	 * @param to Empty CardContainer
 	 */
 	private void swapWhileRetainingOrder(CardContainer from, CardContainer to) {
 		if (!to.isEmpty() || to == from) return;
@@ -346,7 +345,7 @@ public class GameBoard {
 	/**
 	 * The isSolved method returns true if the four final stacks are in a solved position (ace-king for all suits),
 	 * and no other stacks contains a card. 
-	 * @return
+	 * @return True if the game is solved, false otherwise
 	 */
 	public boolean isSolved() {
 		if (getDeck().size() > 0 || getThrowStack().size() > 0)
@@ -395,20 +394,19 @@ public class GameBoard {
 					return cardCount != fromStack.getCardCount();
 				}
 			} else {
-				Card thisStackTopCard = this.getFinalStack(i).peek();
+				Card thisStackTopCard = getFinalStack(i).peek();
 				if (thisStackTopCard.getSuit() == card.getSuit()) {
 					try {
 						moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
 						return cardCount != fromStack.getCardCount();
 					} catch (IllegalArgumentException e) {
 						//Card may not have been one face value higher, do nothing
-						return cardCount != fromStack.getCardCount();
+						return cardCount != fromStack.getCardCount(); //false
 					}
 				}
 			}
 		}
-		//The card passed could not be moved to any final stack, throw exception
-		return cardCount != fromStack.getCardCount();
+		return cardCount != fromStack.getCardCount(); //false
 	}
 
 	public boolean iterateStacksAndMoveToFinalStacks() {

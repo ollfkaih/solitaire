@@ -3,7 +3,7 @@ package solitaire.fxui;
 import solitaire.model.GameBoard;
 import solitaire.model.SolConst;
 import solitaire.model.SolConst.SType;
-import solitaire.fxui.LabelGraphics.SPECIALIMAGE;
+import solitaire.fxui.LabelImageSetter.SPECIALIMAGE;
 import solitaire.logging.ILogger;
 import solitaire.model.Card;
 import solitaire.model.CardDeck;
@@ -22,6 +22,7 @@ import javafx.scene.SnapshotParameters;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.ClipboardContent;
@@ -59,7 +60,6 @@ public class SolitaireController  {
 	@FXML private StatusBarController statusBarController;
 	
 	private GameBoard board;
-	
 	private Map<SolConst.SType, List<Label>> labels = new HashMap<>();
 	private Label draggedLabel;
 	private Label dropLabel;
@@ -80,12 +80,12 @@ public class SolitaireController  {
 		return labels.get(SType.DECK);
 	}
 	/**
-	 * Wrapper function for LabelGraphics' setSpecialImage that also logs an error message if the image was not loaded correctly
+	 * Wrapper function for LabelImageSetter' setSpecialImage that also logs an error message if the image was not loaded correctly
 	 * @param label The label to set an imageview to
 	 * @param type
 	 */
 	private void setSpecialImageforLabel(Label label, SPECIALIMAGE type) {
-		boolean labelSetCorrectly = LabelGraphics.setSpecialImage(label, type);
+		boolean labelSetCorrectly = LabelImageSetter.setSpecialImage(label, type);
 		if (!labelSetCorrectly)
 			statusBarController.log(ILogger.ERROR, StatusBarController.LOADGRAPHICSERROR, null);
 	}
@@ -131,15 +131,13 @@ public class SolitaireController  {
 		for (Pane anchorPane : new Pane[] {FinalStacks,PlayStacks,ThrowStack,Deck})
 			anchorPane.getChildren().clear();
 		labels.clear();
-
+		for (SType sType: SType.values()) 
+			labels.put(sType, new ArrayList<Label>());
+		
 		//Set correct text for undo, but disable it (until first move)
 		canUndo();
 		Undo.setDisable(true);
 		
-		for (SType sType: SType.values()) {
-			labels.put(sType, new ArrayList<Label>());
-		}
-
 		getDeckLabel().add(0, new Label(null));
 		Deck.getChildren().add(0, getDeckLabel().get(0));
 		
@@ -162,17 +160,27 @@ public class SolitaireController  {
 	
 	@FXML void undo() {
 		int prevVisibleCards = visibleCardsInThrowStack;
-		try {board.undo();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null); return;}
+		try {
+			board.undo();
+		} catch (Exception e) {
+			statusBarController.log(ILogger.WARNING, e.getMessage(), null);
+			return;
+		}
 		updateBoard();
+		Undo.setAccelerator(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN));
 		Undo.setText("Redo");
 		Undo.setOnAction(e -> redo());
 		deckAndThrowStackTranslate(prevVisibleCards);
-		Undo.setAccelerator(new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN));
 	}
 	
 	private void redo() {
 		int prevVisibleCards = visibleCardsInThrowStack;
-		try {board.redo();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null); return;}
+		try {
+			board.redo();
+		} catch (Exception e) {
+			statusBarController.log(ILogger.WARNING, e.getMessage(), null);
+			return;
+		}
 		updateBoard();
 		canUndo();
 		deckAndThrowStackTranslate(prevVisibleCards);
@@ -196,7 +204,9 @@ public class SolitaireController  {
 		return count;
 	}
 
-	public void promptSave() { 
+	@FXML public void promptSave() {
+		if (board.isSolved())
+			return;
 		Alert askToSave = new Alert(AlertType.CONFIRMATION);
 		askToSave.setTitle("Solitaire");
 		askToSave.setHeaderText("Do you want to save the game?");
@@ -207,8 +217,26 @@ public class SolitaireController  {
 		askToSave.getButtonTypes().setAll(saveButtonType, dontSaveButtonType);
 
 		Optional<ButtonType> result = askToSave.showAndWait();
-		if (result.get() == saveButtonType){
+		if (result.isPresent() && result.get() == saveButtonType){
 			saveGame();
+		} 
+	}
+
+	@FXML public void showAboutDialog() { 
+		Alert aboutDialog = new Alert(AlertType.CONFIRMATION);
+		((Stage) aboutDialog.getDialogPane().getScene().getWindow()).getIcons().add(new Image(SolitaireController.class.getResourceAsStream("img/icon.png")));
+		aboutDialog.setAlertType(AlertType.INFORMATION);
+		aboutDialog.setTitle("About Solitaire");
+		aboutDialog.setHeaderText("2021 Olav Kihle");
+		aboutDialog.setContentText("Project in TDT4100 Object-oriented programming");
+		aboutDialog.initStyle(StageStyle.UNIFIED);
+		ButtonType okButtonType = new ButtonType("OK", ButtonData.OK_DONE);
+		//ButtonType dontSaveButtonType = new ButtonType("Dont Save", ButtonData.CANCEL_CLOSE);
+		aboutDialog.getButtonTypes().setAll(okButtonType);
+
+		Optional<ButtonType> result = aboutDialog.showAndWait();
+		if (result.isPresent() && result.get() == okButtonType){
+			aboutDialog.close();
 		} 
 	}
 	
@@ -286,7 +314,7 @@ public class SolitaireController  {
 			//Hidden cards should not be draggable or doubleclickable
 			if (! stack.isHidden(cardIndex)) {
 				Card card = stack.getCard(cardIndex);
-				boolean labelSetCorrectly = LabelGraphics.setCardImage(stackLabels.get(labelIndex), card);
+				boolean labelSetCorrectly = LabelImageSetter.setCardImage(stackLabels.get(labelIndex), card);
 				if (!labelSetCorrectly)
 					statusBarController.log(ILogger.ERROR, StatusBarController.LOADGRAPHICSERROR, null);
 				if (labelIndex != 0 && stack.getStackName() != SType.THROWSTACK || cardIndex == stack.getCardCount() - 1) {
@@ -353,12 +381,14 @@ public class SolitaireController  {
 	 */
 	private void updateBoard() {
 		visibleCardsInThrowStack = visibleCardsInThrowStack();
-
-		try {updatePlayStacks();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null);}
-		try {updateFinalStacks();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null);}
-		try {updateDeck();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null);}
-		try {updateThrowStack();} catch (Exception e) {statusBarController.log(ILogger.WARNING, e.getMessage(), null);} 
-		
+		try {
+			updatePlayStacks();
+			updateFinalStacks();
+			updateDeck();
+			updateThrowStack();
+		} catch (Exception e) {
+			statusBarController.log(ILogger.WARNING, e.getMessage(), null);
+		}
 		if (board.isSolved())
 			finishGameAndStartWinAnimation();
 	}
@@ -369,12 +399,16 @@ public class SolitaireController  {
 	 */
 	@FXML private void lazySolve() {
 		statusBarController.log(ILogger.INFO, StatusBarController.LAZYSOLVEERROR, null); //Recursion: we log an error to statusBar first and clear it if a move is made
-		if (board.iterateStacksAndMoveToFinalStacks()) {
-			updateBoard();
-			Undo.setDisable(true);
-			lazySolve();
-			statusBarController.clearStatusBar(); //clear status bar because there was actually no error
-		}
+		try {
+			if (board.iterateStacksAndMoveToFinalStacks()) {
+				updateBoard();
+				Undo.setDisable(true);
+				lazySolve();
+				statusBarController.clearStatusBar(); //clear status bar because there was actually no error
+			}
+		} catch (Exception e) {
+			; //Log will not be overwritten, so user will see an error 
+		}	
 	}
 	
 	/**
@@ -600,11 +634,12 @@ public class SolitaireController  {
 				board.moveCard(inStackIndex, dragParentCardStack, board.getPlayStack(indexOfStacks));
 			} case 'f' -> {
 				board.moveCard(inStackIndex, dragParentCardStack, board.getFinalStack(indexOfStacks));
-			}}
+			}
+			}
+			canUndo();
 		} catch (Exception e) {
 			statusBarController.log(ILogger.WARNING, "Not a legal move", e);
 		}
-		canUndo();
 		updateBoard();
 	}
 

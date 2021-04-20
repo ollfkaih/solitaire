@@ -11,5 +11,5 @@ public abstract class SolConst {
 	public static final int CARDSTODEAL = 3;
 	public static final int TOPDELTAY = 40;
 	public static final int BOTTOMDELTAY = 30;
-	public static final float CARDSCALER = 1/2.9f;
+	public static final float CARDSCALER = 1/2.8f;
 }
