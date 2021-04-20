@@ -108,7 +108,7 @@ public class GameBoard {
 		return lastToStack;
 	}
 
-	public boolean drawStackEmpty() {
+	public boolean isdeckEmpty() {
 		return getDeck().isEmpty();
 	}
 
@@ -271,7 +271,7 @@ public class GameBoard {
 	public void moveCard(int indexOfCard, CardStack fromStack, CardStack toStack) {
 		Card card = fromStack.getCard(indexOfCard);
 		if (!legalMove(card, fromStack, toStack)) {
-			throw new IllegalArgumentException(String.format("Card: %s in stack %s cannot legally be moved to %s. Input index: %s", card, fromStack, toStack, indexOfCard));
+			throw new IllegalArgumentException(String.format("Card: %s cannot legally be moved to requested stack. Input index: %s", card, indexOfCard));
 		}
 		fromStack.play(toStack, indexOfCard);
 		saveMove(fromStack, toStack, toStack.indexOf(card));
@@ -375,34 +375,55 @@ public class GameBoard {
 	
 	/**
 	 * Loops through all four final stacks to check if a given card can be put there
-	 * throws exception if card cannot be moved to any final stack
-	 * @param card the Card to be moved
 	 * @param fromStack the stack the card is currently in
+	 * @return True if card was moved to a finalStack, false otherwise;
 	 */
-	public void moveToFinalStacks(Card card, CardStack fromStack) {
-		if (!fromStack.contains(card)) throw new IllegalArgumentException("Card is not in given stack");
+	public boolean moveToFinalStacks(CardStack fromStack) {
+		if (fromStack.isEmpty())
+			return false;
+		int cardCount = fromStack.getCardCount();
+		Card card;
+		try {
+			card = fromStack.peek();
+		} catch (Exception e) {
+			return false;
+		}
 		for (int i = 0; i < SolConst.SUITS; i++) {
 			if (getFinalStack(i).isEmpty()) {
 				if (card.getFace() == 1) {
 					moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
-					return;
+					return cardCount != fromStack.getCardCount();
 				}
 			} else {
 				Card thisStackTopCard = this.getFinalStack(i).peek();
 				if (thisStackTopCard.getSuit() == card.getSuit()) {
 					try {
 						moveCard(fromStack.size() - 1, fromStack, getFinalStack(i));
-						return;
+						return cardCount != fromStack.getCardCount();
 					} catch (IllegalArgumentException e) {
 						//Card may not have been one face value higher, do nothing
-						throw new IllegalArgumentException("Face value too high: Highest value of stack with suit " + card.getSuit() + " is " + thisStackTopCard.getFace() + ", your card was" + card);
+						return cardCount != fromStack.getCardCount();
 					}
 				}
 			}
 		}
 		//The card passed could not be moved to any final stack, throw exception
-		throw new IllegalArgumentException("No finalstack of same suit found");
+		return cardCount != fromStack.getCardCount();
+	}
+
+	public boolean iterateStacksAndMoveToFinalStacks() {
+		boolean somethingChanged = false;
+		somethingChanged = moveToFinalStacks(getThrowStack());
+		for (int i = 0; i < SolConst.PLAYSTACKSNUM; i++) {
+			if (moveToFinalStacks(getPlayStack(i)))
+				somethingChanged = true;
+		}
+		if (somethingChanged)
+			lastFromStack = null; //Prevent undo (because only one move is allowed to be undone)
+		return somethingChanged;
 	}
 }
 
 
+
+	

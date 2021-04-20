@@ -1,7 +1,7 @@
-# Prosjekt-repo for TDT4100
+# Solitaire - prosjekt i TDT4100 
 
-Dette repoet inneholder et grunnoppsett for et prosjekt som bruker Java, JavaFX og JUnit5.
+Dette repoet er sjuerkabal kodet i Java ifbm. prosjekt i faget objektorientert programmering på NTNU. 
 
-For å kode prosjektet, kan du enten importere det fra url-en til dette repoet i Eclipse, eller du kan forke det til et eget repo, som du deretter kan importere og bruke.
-Sistnevnte gir mulighet til å bruke git for kodesynkronisering og versjonskontroll, og er absolutt anbefalt, spesielt om dere er to som jobber sammen på prosjektet.
-Videoer for begge måter å importere repoet ligger på Blackboard.
+# Credits
+
+Spillkortene (ess-konge i ruter, spar, kløver og hjerter) er fra https://www.me.uk/cards og lisensiert til det offentige domene. Appikonet har jeg laget ved å plassere et av kort-baksiden over en konge, og "tomt"-kortet [emptyCard](project/src/main/resources/solitaire/fxui/img/emptyCard.png) har jeg laget selv.

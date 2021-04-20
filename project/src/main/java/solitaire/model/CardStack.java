@@ -55,7 +55,7 @@ public class CardStack extends CardContainer {
 		else if (hiddenCards <= 0)
 			throw new IllegalStateException("This stack has no hidden cards");
 		else 
-			throw new IllegalArgumentException("The top card must be hidden to reveal hidden cards");
+			throw new IllegalStateException("The top card must be hidden to reveal hidden cards");
 	}
 	@Override
 	/**
@@ -85,7 +85,7 @@ public class CardStack extends CardContainer {
 
 	/**
 	 * play(CardStack, int) will move the top cards including indexOfCard to any other stack
-	 * This method only insures that the card is in this stack, and that the stacks are different
+	 * This method only insures that the card is in this stack, and that the stacks are not the same one 
 	 */
 	 public void play(CardContainer stack, int indexOfCard) {
 		if (indexOfCard < 0 || indexOfCard > this.size() - 1) 

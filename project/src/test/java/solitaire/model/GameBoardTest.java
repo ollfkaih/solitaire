@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +28,7 @@ public class GameBoardTest {
     }
 	
     @Test
-    @DisplayName("Tests the GameBoard constructor")
+    @DisplayName("Tests the GameBoard constructor and toString")
     void testConstructor() {
         CardDeck cleanDeck = new CardDeck(13);
         for (int i = 0; i < 4; i++) {
@@ -103,7 +106,7 @@ public class GameBoardTest {
 
     @Test
     @DisplayName("Test redo")
-    public void testRedo() {
+    void testRedo() {
         board.deal(3);
         String beforeString = board.toString();
         board.undo();
@@ -125,5 +128,55 @@ public class GameBoardTest {
         board.redo(); //redo: put cards back in deck (again)
         assertTrue(board.getThrowStack().isEmpty());
         assertEquals(beforeString, board.toString());
+    }
+
+    @Test
+    @DisplayName("Test if games are solved")
+    void testIsSolved() {
+    	Map<SType, CardContainer> testMap = new TreeMap<>();
+    	for (int i = 0; i < 4 ; i++) 
+			testMap.put(SType.valueOf("F" + i), new CardStack(SType.valueOf("F" + i)));
+    	for (int i = 0; i < 7 ; i++) 
+			testMap.put(SType.valueOf("P" + i), new CardStack(SType.valueOf("P" + i))); 
+    	testMap.put(SType.THROWSTACK, new CardStack(SType.THROWSTACK));
+    	CardDeck deck = new CardDeck(13);
+    	testMap.put(SType.DECK, deck);
+    	deck.deal((CardStack) testMap.get(SType.F0), 13);
+    	deck.deal((CardStack) testMap.get(SType.F1), 13);
+    	deck.deal((CardStack) testMap.get(SType.F3), 13);
+    	deck.deal((CardStack) testMap.get(SType.P2), 13);
+    	GameBoard currentBoard = new GameBoard(testMap);
+    	assertFalse(currentBoard.isSolved());
+    	testMap.put(SType.F2, testMap.get(SType.P2));
+    	testMap.put(SType.P2, new CardStack(SType.P2));
+    	assertTrue(currentBoard.isSolved());
+    }
+
+    @Test
+    @DisplayName("Test moving card to finalstacks")
+    void testMoveToFinalStackMethods() {
+    	assertEquals(gameBoardString, board.toString());
+    	assertEquals("D1", board.getPlayStack(1).peek().toString());
+    	assertTrue(board.moveToFinalStacks(board.getPlayStack(1)));
+    	assertEquals("D1", board.getFinalStack(0).toString());
+    	board.undo();
+    	assertFalse(board.moveToFinalStacks(board.getPlayStack(6)));
+    	    	
+    	assertTrue(board.iterateStacksAndMoveToFinalStacks());
+    	assertThrows(IllegalStateException.class, () -> board.undo(), "Undo should be disabled after iterateStacksAndMoveToFinalStacks()");
+    	assertFalse(board.iterateStacksAndMoveToFinalStacks());
+    	assertEquals("D1", board.getFinalStack(0).toString());
+    }
+    
+    @Test
+    @DisplayName("Test revealCard")
+    void testRevealCard() {
+    	assertEquals(2, board.getPlayStack(1).getCardCount());
+    	assertThrows(IllegalStateException.class, () -> board.revealTopCard(board.getPlayStack(1)));
+    	assertThrows(IllegalArgumentException.class, () -> board.getPlayStack(1).getCard(0));
+    	board.iterateStacksAndMoveToFinalStacks();
+    	assertThrows(IllegalArgumentException.class, () -> board.getPlayStack(1).getCard(0));
+    	board.revealTopCard(board.getPlayStack(1));
+    	assertEquals("H13", board.getPlayStack(1).getCard(0).toString());
     }
 }

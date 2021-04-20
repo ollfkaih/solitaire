@@ -3,8 +3,6 @@ package solitaire.fxui;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-
 import javafx.fxml.FXML;
 import javafx.scene.layout.HBox;
 import solitaire.logging.DistributingLogger;
@@ -16,7 +14,7 @@ import solitaire.logging.StreamLogger;
  * A special controller that uses a DistributingLogger to log events 
  * to a label in the game's status bar or to file, depending on event severity
  */
-public class StatusBarController {
+public class StatusBarController implements ILogger {
 	@FXML private HBox BottomBar;
 	
 	public final static String DEALERROR = "Could not deal cards", NEWGAME = "New game started",
@@ -24,6 +22,7 @@ public class StatusBarController {
 			SAVESUCCESS = "Game saved", LOADSUCCESS = "Game loaded", 
 			SAVEFILECORRUPT = LOADERROR + " because the save file is corrupt",
 			LOADGRAPHICSERROR = "Some images were not loaded, game will not play correctly",
+			LAZYSOLVEERROR = "No cards can be legally moved to finalstacks",
 			GAMEWON = "You won! Press F2 or 'Game' -> 'New game' to play again" ;
 	private DistributingLogger logger;
 

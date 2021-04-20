@@ -33,7 +33,6 @@ public class SolitaireApp extends Application {
 		});
         stage.setMinHeight(480 + SolConst.TOPDELTAY + 30 - 10); //TODO: Review (Root height + menubar, bottom bar and empty height)
         stage.setMinWidth(600);
-        //controller.setStage(stage);
     }
 
     public static void main(String[] args) {
