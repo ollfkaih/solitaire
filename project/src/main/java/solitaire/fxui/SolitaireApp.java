@@ -17,7 +17,7 @@ public class SolitaireApp extends Application {
     	loader = new FXMLLoader((getClass().getResource("Solitaire.fxml")));
     	loader.load();
     	controller = (SolitaireController) loader.getController();
-    	stage.setTitle("Solitaire"); //fallback
+    	stage.setTitle("Solitaire"); 
         stage.setScene(new Scene(loader.getRoot()));
         try {
         stage.getIcons().add(new Image(SolitaireController.class.getResourceAsStream("img/icon.png")));
