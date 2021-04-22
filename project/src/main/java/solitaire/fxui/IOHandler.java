@@ -30,13 +30,14 @@ public class IOHandler implements IFileReadWrite {
 		//directly in user folder (and personal preference), and appdata was easy to get on all localised Windows system.
 		//The try/catch is because I have not tested if (Path of appdata) will be null or throw exception on linux etc. 
 		Path savePath;
+		String saveFolder = "Solitaire";
 		try {
 			if (System.getProperty("os.name").toLowerCase().contains("win"))
-				savePath = Path.of(System.getenv("APPDATA"), "Solitaire");
+				savePath = Path.of(System.getenv("APPDATA"), saveFolder);
 			else
-				savePath = Path.of(System.getProperty("user.home"), "Solitaire");
+				savePath = Path.of(System.getProperty("user.home"), saveFolder);
 		} catch (Exception e) {
-			savePath = Path.of(System.getProperty("user.home"), "Solitaire");
+			savePath = Path.of(System.getProperty("user.home"), saveFolder);
 		}
 		return savePath;
 	}

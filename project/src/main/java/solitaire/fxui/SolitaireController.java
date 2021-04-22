@@ -228,7 +228,6 @@ public class SolitaireController  {
 		aboutDialog.setContentText("Project in TDT4100 Object-oriented programming");
 		aboutDialog.initStyle(StageStyle.UNIFIED);
 		ButtonType okButtonType = new ButtonType("OK", ButtonData.OK_DONE);
-		//ButtonType dontSaveButtonType = new ButtonType("Dont Save", ButtonData.CANCEL_CLOSE);
 		aboutDialog.getButtonTypes().setAll(okButtonType);
 
 		Optional<ButtonType> result = aboutDialog.showAndWait();
@@ -404,7 +403,7 @@ public class SolitaireController  {
 				statusBarController.clearStatusBar(); //clear status bar because there was actually no error
 			}
 		} catch (Exception e) {
-			; //Log will not be overwritten, so user will see an error 
+			//Log will not be overwritten, so user will see an error 
 		}	
 	}
 	
@@ -500,7 +499,7 @@ public class SolitaireController  {
 			l.get(j).setTranslateX(Math.round(xOffset + xFactor*i));
 			
 			if (j == 1) 
-				l.get(1).setTranslateY(yOffset = 0);
+				yOffset = 0;
 			else if (board.getPlayStack(i).isHidden(j - 2)) 
 				yOffset = yOffset + 6;
 			else 
@@ -572,7 +571,6 @@ public class SolitaireController  {
 	EventHandler <DragEvent> dragOverEvent = new EventHandler <DragEvent>() {
         public void handle(DragEvent event) {
             event.acceptTransferModes(TransferMode.MOVE);
-            //draggedLabel.setCursor(Cursor.DISAPPEAR);
             event.consume();
         }
 	};
@@ -583,7 +581,6 @@ public class SolitaireController  {
 				for (Node label : PlayStacks.getChildren())
 					label.setVisible(true);
 	            draggedLabel.setVisible(true);
-	        	//event.consume();
 	        }
 		};
 		

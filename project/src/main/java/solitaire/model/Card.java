@@ -43,9 +43,7 @@ public class Card {
 	 * Returns true if both the suit and face value of this card is equal to card2
 	 */
 	public boolean equals(Card card2) {
-		if (this.getSuit() == card2.getSuit() && this.getFace() == card2.getFace())
-			return true;
-		return false;
+		return (this.getSuit() == card2.getSuit() && this.getFace() == card2.getFace());
 	}
 	
 	@Override

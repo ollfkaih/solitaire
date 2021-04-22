@@ -86,7 +86,7 @@ public class CardContainerTest {
 	@DisplayName("Test that decrementHiddenCards only lets us reveal the topmost hidden card, and keeps counter positive")
 	public void testDecrementHiddenCards() {
 		stackWithHiddenCards.decrementHiddenCards();
-		assertThrows(IllegalArgumentException.class, () -> stackWithHiddenCards.decrementHiddenCards(), "Cannot reveal more than the top card of stack");
+		assertThrows(IllegalStateException.class, () -> stackWithHiddenCards.decrementHiddenCards(), "Cannot reveal more than the top card of stack");
 		stackWithHiddenCards.remove(2);
 		stackWithHiddenCards.decrementHiddenCards();
 		stackWithHiddenCards.remove(1);
