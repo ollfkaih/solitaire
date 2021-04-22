@@ -115,9 +115,6 @@ public class SolitaireController  {
 		carddeck.shuffle();	
 		board = new GameBoard(carddeck);
 		
-		//TODO: REMOVE TO NOT AUTOLOAD
-		// loadGame();
-		
 		statusBarController.log(ILogger.INFO, StatusBarController.NEWGAME, null);
 		resetBoardLabels();
 	}

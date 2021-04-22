@@ -10,7 +10,7 @@ public class GameBoard {
 	//stacks is a map of the boards card stacks: four final stacks, seven play stacks, a deck and a throw stack
 	//TreeMap is useful because that means the map will be sorted according to the ordering of enum SType and save files will be orderered that same way
 	private Map <SolConst.SType, CardContainer> stacks = new TreeMap<>();
-	//Track last move
+	//Track last move so we can undo
 	private CardContainer lastFromStack;
 	private CardContainer lastToStack;
 	private int indexOfLastMove;

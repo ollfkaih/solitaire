@@ -1,5 +1,9 @@
 package solitaire.model;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,19 +29,19 @@ public class CardTest {
 		checkCard(new Card('C', 1), 'C', 1);
 		checkCard(new Card('C', 13), 'C', 13);
 
-		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(IllegalArgumentException.class, () -> {
 			new Card('E', 1);
 		}, "Creating a card of suit E should not be possible");
 
-		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(IllegalArgumentException.class, () -> {
 			new Card('S', 0);
 		}, "Creating a card with face value 0 should not be possible");
 
-		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(IllegalArgumentException.class, () -> {
 			new Card('C', 14);
 		}, "Creating a card with face value 14 should not be possible");
 		
-		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+		assertThrows(IllegalArgumentException.class, () -> {
 			new Card('C', -2);
 		}, "Creating a card with face value -2 should not be possible");
 	}
@@ -61,7 +65,17 @@ public class CardTest {
 		Assertions.assertFalse(d1.equals(anotherc13));
 		Assertions.assertTrue(c13.equals(anotherc13));
 		Assertions.assertTrue(c13.equals(c13));
-		
 	}
 	
+	@Test
+	public void testIsRed() {
+		Card c12 = new Card('C', 12);
+		Card d1 = new Card('D', 1);
+		Card s12 = new Card('S', 12);
+		Card h2 = new Card('H', 2);
+		assertFalse(c12.isRed());
+		assertFalse(s12.isRed());
+		assertTrue(d1.isRed());
+		assertTrue(h2.isRed());
+	}
 }

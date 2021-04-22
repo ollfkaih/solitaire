@@ -25,13 +25,12 @@ public class SolitaireApp extends Application {
         stage.show();	
         stage.setOnCloseRequest(event -> {
 			try {
-				//TODO: Uncomment
 				appExit();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		});
-        stage.setMinHeight(480 + SolConst.TOPDELTAY + SolConst.BOTTOMDELTAY); //TODO: Review (Root height + menubar, bottom bar and empty height)
+        stage.setMinHeight(480 + SolConst.TOPDELTAY + SolConst.BOTTOMDELTAY);
         stage.setMinWidth(600);
     }
 
