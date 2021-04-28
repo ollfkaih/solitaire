@@ -17,7 +17,7 @@ public class SolitaireApp extends Application {
     	loader = new FXMLLoader((getClass().getResource("Solitaire.fxml")));
     	loader.load();
     	controller = (SolitaireController) loader.getController();
-    	stage.setTitle("Solitaire"); //fallback
+    	stage.setTitle("Solitaire"); 
         stage.setScene(new Scene(loader.getRoot()));
         try {
         stage.getIcons().add(new Image(SolitaireController.class.getResourceAsStream("img/icon.png")));
@@ -25,13 +25,12 @@ public class SolitaireApp extends Application {
         stage.show();	
         stage.setOnCloseRequest(event -> {
 			try {
-				//TODO: Uncomment
 				appExit();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		});
-        stage.setMinHeight(480 + SolConst.TOPDELTAY + SolConst.BOTTOMDELTAY); //TODO: Review (Root height + menubar, bottom bar and empty height)
+        stage.setMinHeight(480 + SolConst.TOPDELTAY + SolConst.BOTTOMDELTAY);
         stage.setMinWidth(600);
     }
 
