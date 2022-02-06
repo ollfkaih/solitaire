@@ -115,3 +115,5 @@ project/src/main/resources/solitaire/fxui/img/2B.png
 .vscode/settings.json
 
 project/src/main/resources/solitaire/fxui/img/icon-*.png
+project/targetWORKING/*
+file*
